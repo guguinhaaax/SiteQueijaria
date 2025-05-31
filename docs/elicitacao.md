@@ -60,50 +60,37 @@ Este documento de Especificação de Requisitos de Software tem como objetivo de
 ### 1.2 Escopo do Produto
 O sistema descrito neste documento é um site para uma loja de queijos, com foco em gestão de produtos, pedidos e faturamento. O sistema permitirá que o administrador (dono da loja) cadastre, edite e remova produtos, além de acompanhar relatórios de vendas e o status dos pedidos. Os clientes finais poderão consultar os produtos disponíveis, filtrá-los, montar um carrinho de compras e realizar pedidos, optando pela retirada no local ou pela entrega por mototáxi, conforme disponibilidade. Este produto é destinado a melhorar o fluxo de caixa e aumentar a eficiência de vendas da loja
 
-### 1.3 Definições, Acrônimos e Abreviações
-.ERS – Especificação de Requisitos de Software <br>
-.RF – Requisito Funcional <br>
-.Administrador – Dono da loja, responsável por gerenciar produtos, pedidos e faturamento <br>
-.Cliente Final – Usuário do sistema que realiza consultas e pedidos de produtos 
-
-### 1.4 Referências
-.IEEE Std 830-1998 - IEEE Recommended Practice for Software Requirements Specifications
-
 ### 1.5 Visão Geral do Documento
 Este documento está organizado da seguinte forma: <br>
 
-A Seção 2 apresenta uma visão geral do produto, incluindo sua perspectiva, funções principais, restrições, características dos usuários, suposições e rateio de requisitos. <br>
+A Seção 2 apresenta uma visão geral do projeto, incluindo sua perspectiva, funções principais, restrições, características dos usuários e elicitação de requisitos. <br>
 A Seção 3 especifica os requisitos do sistema de forma detalhada, divididos em requisitos funcionais, interfaces externas, requisitos de qualidade de serviço, conformidade e considerações de projeto e implementação. <br>
 A Seção 4 descreve os métodos de verificação a serem utilizados para assegurar que o software atenda aos requisitos definidos. <br>
 A Seção 5 apresenta os apêndices relevantes para o projeto. <br>
 
 ## 2. Visão Geral do Produto
-> Esta seção deve descrever os fatores gerais que afetam o produto e seus requisitos. Esta seção não declara requisitos específicos. Em vez disso, fornece um contexto para esses requisitos, definidos em detalhes na Seção 3, e facilita sua compreensão.
 
 ### 2.1 Perspectiva do Produto
-Descrever o contexto e a origem do produto especificado nesta ERS. Por exemplo, indicar se o produto é um membro sucessor de uma família de produtos, um substituto para certos sistemas existentes ou um produto novo e autônomo. Se a ERS define um componente de um sistema maior, relacionar os requisitos do sistema maior à funcionalidade deste software e identificar interfaces entre ambos. Um diagrama simples mostrando os principais componentes do sistema, interconexões de subsistemas e interfaces externas pode ser útil.
+
+Nosso cliente necessita de uma ferramenta de amostroário para os laticínios oferecidos no seu estabelecimento, pois ainda que ele fizesse a produção, possuia dificuldades para anunciá-los de maneira eficar. Ele busca alcançar um público com interesses em derivados do leite por meio de um site com seu catálogo disponível.
 
 ### 2.2 Funções do Produto
-Resumir as principais funções que o produto deve executar ou permitir que o usuário execute. Os detalhes serão fornecidos na Seção 3, então aqui é necessário apenas um resumo de alto nível (como uma lista com marcadores). Organizar as funções para torná-las compreensíveis a qualquer leitor da ERS. Uma figura com grupos principais de requisitos relacionados e suas relações, como um diagrama de fluxo de dados de alto nível ou diagrama de classes de objetos, pode ser eficaz.
+
+* Dar informações gerais do estabelecimento
+* Mostrar catálogo de produtos
+* Mostrar formas de contato
+* Registro de dados do usuário
 
 ### 2.3 Restrições do Produto
-Esta subseção deve fornecer uma descrição geral de quaisquer itens que limitarão as opções do desenvolvedor. Estes podem incluir:
 
-* Interfaces com usuários, outros aplicativos ou hardware.  
-* Restrições de qualidade de serviço.  
-* Conformidade com normas.  
-* Restrições de projeto ou implementação.
+* Utilização das linguagens de programação web 
+* Utilização de banco de dados 
+* Criação de sistema de cadastro e login
+* Utilização de metodologia ágel ao longo do projeto
 
 ### 2.4 Características dos Usuários
-Identificar as várias classes de usuários que se prevê utilizar este produto. As classes de usuários podem ser diferenciadas com base na frequência de uso, subconjunto de funções utilizadas, conhecimento técnico, níveis de segurança ou privilégio, nível educacional ou experiência. Descrever as características relevantes de cada classe de usuário. Certos requisitos podem se aplicar apenas a determinadas classes. Distinguir as classes de usuários mais importantes daquelas cuja satisfação é menos crítica.
 
-### 2.5 Suposições e Dependências
-Listar quaisquer fatores assumidos (em oposição a fatos conhecidos) que possam afetar os requisitos declarados na ERS. Estes podem incluir componentes comerciais ou de terceiros que se planeja utilizar, questões relacionadas ao ambiente de desenvolvimento ou operação, ou restrições. O projeto poderá ser afetado se essas suposições forem incorretas, não forem compartilhadas ou mudarem. Identificar também quaisquer dependências externas do projeto, como componentes de software a serem reutilizados de outro projeto, a menos que já estejam documentadas em outro lugar (por exemplo, no documento de visão e escopo ou plano do projeto).
-
-### 2.6 Rateio de Requisitos
-Distribuir os requisitos de software entre os elementos de software. Para requisitos que exigirão implementação em vários elementos, ou quando a alocação a um elemento ainda estiver indefinida, isso deve ser declarado. Uma tabela de referência cruzada por função e elemento de software deve ser usada para resumir o rateio.
-
-Identificar requisitos que podem ser adiados para versões futuras do sistema (por exemplo, blocos ou incrementos).
+O usuário alvo deste projeto se encaixa em pessoas jovens e adultas, possuindo acesso regular a internet por meio de computadores, com mínimo grau acadêmico de alfabetização e qualquer classe econômica, com interesse em consumir produtos derivados do leite com regularidade constante.
 
 ## 3. Requisitos
 > Esta seção especifica os requisitos do produto de software. Especifique todos os requisitos de software com nível de detalhe suficiente para permitir que os projetistas desenvolvam o sistema e que os testadores verifiquem que o sistema atende aos requisitos.
