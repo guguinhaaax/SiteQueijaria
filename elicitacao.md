@@ -61,21 +61,21 @@ Este documento de Especificação de Requisitos de Software tem como objetivo de
 O sistema descrito neste documento é um site para uma loja de queijos, com foco em gestão de produtos, pedidos e faturamento. O sistema permitirá que o administrador (dono da loja) cadastre, edite e remova produtos, além de acompanhar relatórios de vendas e o status dos pedidos. Os clientes finais poderão consultar os produtos disponíveis, filtrá-los, montar um carrinho de compras e realizar pedidos, optando pela retirada no local ou pela entrega por mototáxi, conforme disponibilidade. Este produto é destinado a melhorar o fluxo de caixa e aumentar a eficiência de vendas da loja
 
 ### 1.3 Definições, Acrônimos e Abreviações
-.ERS – Especificação de Requisitos de Software
-.RF – Requisito Funcional
-.Administrador – Dono da loja, responsável por gerenciar produtos, pedidos e faturamento
-.Cliente Final – Usuário do sistema que realiza consultas e pedidos de produtos
+.ERS – Especificação de Requisitos de Software <br>
+.RF – Requisito Funcional <br>
+.Administrador – Dono da loja, responsável por gerenciar produtos, pedidos e faturamento <br>
+.Cliente Final – Usuário do sistema que realiza consultas e pedidos de produtos 
 
 ### 1.4 Referências
 .IEEE Std 830-1998 - IEEE Recommended Practice for Software Requirements Specifications
 
 ### 1.5 Visão Geral do Documento
-Este documento está organizado da seguinte forma:
+Este documento está organizado da seguinte forma: <br>
 
-.A Seção 2 apresenta uma visão geral do produto, incluindo sua perspectiva, funções principais, restrições, características dos usuários, suposições e rateio de requisitos.
-.A Seção 3 especifica os requisitos do sistema de forma detalhada, divididos em requisitos funcionais, interfaces externas, requisitos de qualidade de serviço, conformidade e considerações de projeto e implementação.
-.A Seção 4 descreve os métodos de verificação a serem utilizados para assegurar que o software atenda aos requisitos definidos.
-.A Seção 5 apresenta os apêndices relevantes para o projeto.
+A Seção 2 apresenta uma visão geral do produto, incluindo sua perspectiva, funções principais, restrições, características dos usuários, suposições e rateio de requisitos. <br>
+A Seção 3 especifica os requisitos do sistema de forma detalhada, divididos em requisitos funcionais, interfaces externas, requisitos de qualidade de serviço, conformidade e considerações de projeto e implementação. <br>
+A Seção 4 descreve os métodos de verificação a serem utilizados para assegurar que o software atenda aos requisitos definidos. <br>
+A Seção 5 apresenta os apêndices relevantes para o projeto. <br>
 
 ## 2. Visão Geral do Produto
 > Esta seção deve descrever os fatores gerais que afetam o produto e seus requisitos. Esta seção não declara requisitos específicos. Em vez disso, fornece um contexto para esses requisitos, definidos em detalhes na Seção 3, e facilita sua compreensão.
