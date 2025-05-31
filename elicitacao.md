@@ -53,21 +53,29 @@ Tabela de Conteúdos
 |      |         |                      |          |
 
 ## 1. Introdução
-> Esta seção deve fornecer uma visão geral de todo o documento
 
 ### 1.1 Objetivo do Documento
-Descrever o propósito da ERS e seu público-alvo.
+Este documento de Especificação de Requisitos de Software tem como objetivo descrever de forma clara os requisitos funcionais e não funcionais do página web a ser desenvolvida para uma loja de queijos que tem um negócio local na região de Pernambuco. O público-alvo deste documento inclui desenvolvedores, analistas de requisitos, testadores, gestores do projeto e demais stakeholders envolvidos no desenvolvimento e validação do sistema. A ERS também serve como base para validação do produto final e uma referência para futuras manutenções.
 
 ### 1.2 Escopo do Produto
-Identificar o produto cujos requisitos de software são especificados neste documento, incluindo o número da revisão ou versão. Explicar o que o produto abordado por esta ERS fará, especialmente se esta ERS descreve apenas parte do sistema ou um único subsistema. Fornecer uma descrição breve do software especificado e seu propósito, incluindo benefícios, objetivos e metas relevantes. Relacionar o software com os objetivos corporativos ou estratégias de negócio. Se houver um documento separado de visão e escopo, referenciar este documento ao invés de duplicar seu conteúdo aqui.
+O sistema descrito neste documento é um site para uma loja de queijos, com foco em gestão de produtos, pedidos e faturamento. O sistema permitirá que o administrador (dono da loja) cadastre, edite e remova produtos, além de acompanhar relatórios de vendas e o status dos pedidos. Os clientes finais poderão consultar os produtos disponíveis, filtrá-los, montar um carrinho de compras e realizar pedidos, optando pela retirada no local ou pela entrega por mototáxi, conforme disponibilidade. Este produto é destinado a melhorar o fluxo de caixa e aumentar a eficiência de vendas da loja
 
 ### 1.3 Definições, Acrônimos e Abreviações
+.ERS – Especificação de Requisitos de Software
+.RF – Requisito Funcional
+.Administrador – Dono da loja, responsável por gerenciar produtos, pedidos e faturamento
+.Cliente Final – Usuário do sistema que realiza consultas e pedidos de produtos
 
 ### 1.4 Referências
-Listar quaisquer outros documentos ou endereços web aos quais esta ERS se refere. Estes podem incluir guias de estilo de interface do usuário, contratos, normas, especificações de requisitos do sistema, documentos de casos de uso ou um documento de visão e escopo. Fornecer informações suficientes para que o leitor possa acessar uma cópia de cada referência, incluindo título, autor, número da versão, data e fonte ou localização.
+.IEEE Std 830-1998 - IEEE Recommended Practice for Software Requirements Specifications
 
 ### 1.5 Visão Geral do Documento
-Descrever o que o restante do documento contém e como está organizado.
+Este documento está organizado da seguinte forma:
+
+.A Seção 2 apresenta uma visão geral do produto, incluindo sua perspectiva, funções principais, restrições, características dos usuários, suposições e rateio de requisitos.
+.A Seção 3 especifica os requisitos do sistema de forma detalhada, divididos em requisitos funcionais, interfaces externas, requisitos de qualidade de serviço, conformidade e considerações de projeto e implementação.
+.A Seção 4 descreve os métodos de verificação a serem utilizados para assegurar que o software atenda aos requisitos definidos.
+.A Seção 5 apresenta os apêndices relevantes para o projeto.
 
 ## 2. Visão Geral do Produto
 > Esta seção deve descrever os fatores gerais que afetam o produto e seus requisitos. Esta seção não declara requisitos específicos. Em vez disso, fornece um contexto para esses requisitos, definidos em detalhes na Seção 3, e facilita sua compreensão.
