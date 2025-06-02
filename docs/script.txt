@@ -1,0 +1,41 @@
+CREATE DATABASE projeto_queijaria;
+USE projeto_queijaria;
+
+CREATE TABLE endereco(
+	cod_end INT AUTO_INCREMENT PRIMARY KEY,
+    c_ruaend VARCHAR(50),
+    c_cepend varchar(9),
+    c_bairroend VARCHAR(25),
+    n_numend INT,
+    c_compend VARCHAR(50),
+    c_cidend VARCHAR(30)
+);
+
+CREATE TABLE produtos(
+	cod_prod INT AUTO_INCREMENT PRIMARY KEY,
+	cod_end INT NOT NULL,
+	c_nomeprod VARCHAR(30),
+    n_quantprod INT,
+    n_valoprod DECIMAL(10, 2) NOT NULL,
+    c_descprod TEXT,
+	criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (cod_end) REFERENCES endereco(cod_end)
+);
+
+CREATE TABLE usuarios(
+	cod_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    c_nomeusua VARCHAR(50) NOT NULL, 
+    c_emailusua VARCHAR(256) NOT NULL,
+    c_senhausua VARCHAR(60) NOT NULL,
+	criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE faturamento (
+    cod_faturamento INT PRIMARY KEY AUTO_INCREMENT,
+    cod_prod INT NOT NULL,
+    cod_usuario INT NOT NULL,
+    n_quant INT NOT NULL,
+    d_data_venda TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cod_prod) REFERENCES produtos(cod_prod),
+    FOREIGN KEY (cod_usuario) REFERENCES usuarios(cod_usuario)
+);
