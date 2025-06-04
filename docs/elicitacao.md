@@ -148,8 +148,8 @@ O usuário alvo deste projeto se encaixa em pessoas jovens e adultas, possuindo 
 * Opcional: integração com sensores de temperatura e umidade da câmara de maturação (via IoT).
 
 #### 3.1.3 Interfaces de Software
-* Banco de dados PostgreSQL 14 ou superior.
-* Sistema operacional Linux (Ubuntu 22.04 ou superior).
+* Banco de dados MySQL.
+* Sistema operacional Linux (Ubuntu 22.04 ou superior) e Windows (7 ou  superior).
 * Integração com sistemas de emissão de nota fiscal eletrônica (NFe).
 * APIs para conexão com plataformas de e-commerce (ex: Shopify, WooCommerce).
 * Sistema de backup automático em nuvem (ex: AWS S3).
