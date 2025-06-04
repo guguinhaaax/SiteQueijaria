@@ -102,13 +102,13 @@ Nosso cliente necessita de uma ferramenta de amostroário para os laticínios of
 O usuário alvo deste projeto se encaixa em pessoas jovens e adultas, possuindo acesso regular a internet por meio de computadores, com mínimo grau acadêmico de alfabetização e qualquer classe econômica, com interesse em consumir produtos derivados do leite com regularidade constante.
 
 ## 3. Requisitos
-> Esta seção especifica os requisitos do produto de software. Especifique todos os requisitos de software com nível de detalhe suficiente para permitir que os projetistas desenvolvam o sistema e que os testadores verifiquem que o sistema atende aos requisitos.
+> Esta seção especifica os requisitos do sistema de software de gestão da queijaria. Os requisitos aqui descritos fornecem o detalhamento necessário para o desenvolvimento do sistema e posterior verificação pela equipe de testes.
 
 > Os requisitos específicos devem:
 * Ser unicamente identificáveis.  
 * Declarar o sujeito do requisito (por exemplo, sistema, software, etc.) e o que deverá ser feito.  
 * Opcionalmente, declarar as condições e restrições, se houver.  
-* Descrever cada entrada (estímulo) no sistema de software, cada saída (resposta) do sistema e todas as funções realizadas pelo sistema em resposta a uma entrada ou para suportar uma saída.  
+* Descrever entradas (como pedidos ou dados de produção), saídas (relatórios, notificações) do sistema e todas as funções realizadas pelo sistema em resposta a uma entrada ou para suportar uma saída.  
 * Ser verificáveis (por exemplo, a realização do requisito pode ser comprovada para satisfação do cliente).  
 * Estar em conformidade com a sintaxe, palavras-chave e termos acordados.
 
@@ -127,68 +127,97 @@ O usuário alvo deste projeto se encaixa em pessoas jovens e adultas, possuindo 
 * Mensagens finais  
 
 #### 3.1.1 Interfaces com o Usuário
-Definir os componentes de software para os quais é necessária uma interface com o usuário. Descrever as características lógicas de cada interface entre o produto de software e os usuários. Isso pode incluir imagens de telas, quaisquer padrões de GUI ou guias de estilo de família de produtos a serem seguidos, restrições de layout de tela, botões e funções padrão (por exemplo, ajuda) que aparecerão em cada tela, atalhos de teclado, padrões de exibição de mensagens de erro, e assim por diante. Os detalhes do design da interface do usuário devem ser documentados em uma especificação separada.
+> O sistema oferecerá uma interface gráfica acessível via navegador para os seguintes perfis:
+* Operador de Produção
+* Gerente da Queijaria
+* Atendente de Vendas
+* Administrador do Sistema
 
-Pode ser subdividido em requisitos de Usabilidade e Conveniência.
+> Características esperadas:
+* Layout responsivo e intuitivo.
+* Telas de cadastro de produtos, controle de maturação, controle de estoque, pedidos e vendas.
+* Relatórios com visualização gráfica (produção diária, perdas, estoques, etc.).
+* Botões padrão: Salvar, Cancelar, Ajuda, Voltar.
+* Mensagens de erro e confirmação claras.
+* Atalhos de teclado para acelerar cadastros e consultas.
 
 #### 3.1.2 Interfaces de Hardware
-Descrever as características lógicas e físicas de cada interface entre o produto de software e os componentes de hardware do sistema. Isso pode incluir os tipos de dispositivos suportados, a natureza das interações de dados e controle entre o software e o hardware, e os protocolos de comunicação a serem utilizados.
+* Comunicação com balanças eletrônicas via porta USB ou rede local.
+* Impressoras térmicas para etiquetas de rastreabilidade e códigos QR.
+* Leitor de código de barras para conferência de estoque e vendas.
+* Opcional: integração com sensores de temperatura e umidade da câmara de maturação (via IoT).
 
 #### 3.1.3 Interfaces de Software
-Descrever as conexões entre este produto e outros componentes específicos de software (nome e versão), incluindo bancos de dados, sistemas operacionais, ferramentas, bibliotecas e componentes comerciais integrados. Identificar os itens de dados ou mensagens que entram e saem do sistema, descrevendo o propósito de cada um. Descrever os serviços necessários e a natureza da comunicação. Referenciar documentos que descrevam protocolos de API em detalhes. Identificar dados que serão compartilhados entre componentes. Se o mecanismo de compartilhamento de dados deve ser implementado de forma específica (por exemplo, uso de área de dados global em SO multitarefa), especificar isso como restrição de implementação.
+* Banco de dados PostgreSQL 14 ou superior.
+* Sistema operacional Linux (Ubuntu 22.04 ou superior).
+* Integração com sistemas de emissão de nota fiscal eletrônica (NFe).
+* APIs para conexão com plataformas de e-commerce (ex: Shopify, WooCommerce).
+* Sistema de backup automático em nuvem (ex: AWS S3).
 
 ### 3.2 Funcionais
-> Esta seção especifica os requisitos dos efeitos funcionais que o software deve produzir no ambiente.
+* RF01: O sistema deve permitir o cadastro, edição e exclusão de produtos pelo administrador (dono da loja).
+* RF02: O sistema deve exibir a lista de produtos disponíveis para o cliente com seus respectivos detalhes.
+* RF03: O cliente deve poder adicionar produtos ao carrinho e realizar pedidos.
+* RF04: O sistema deve permitir ao cliente selecionar entre retirada no local ou entrega.
+* RF05: O sistema deve permitir ao administrador visualizar relatórios de faturamento.
+* RF06: O sistema deve notificar o administrador sobre novos pedidos realizados.
+* RF07: O sistema deve permitir a adição de novos produtos pelo administrador.
 
 ### 3.3 Qualidade de Serviço
-> Esta seção apresenta requisitos adicionais relacionados à qualidade que os efeitos funcionais do software devem apresentar.
 
 #### 3.3.1 Desempenho
-Se houver requisitos de desempenho para o produto sob diversas circunstâncias, declará-los aqui e explicar a justificativa, para ajudar os desenvolvedores a entender a intenção e fazer escolhas adequadas de projeto. Especificar relações temporais para sistemas em tempo real. Fazer tais requisitos o mais específico possível. Pode ser necessário declarar requisitos de desempenho para funcionalidades individuais.
+* O sistema deve responder a qualquer requisição em até 2 segundos em condições normais de operação (< 10 usuários simultâneos).
+* Relatórios devem ser gerados em no máximo 5 segundos para até 1.000 registros.
 
 #### 3.3.2 Segurança
-Especificar quaisquer requisitos de segurança ou privacidade relacionados ao uso do produto ou proteção dos dados usados ou criados. Definir requisitos de autenticação de identidade do usuário. Referenciar quaisquer políticas ou regulamentos externos que envolvam questões de segurança. Definir certificações que o produto deve satisfazer.
+* Autenticação por login e senha criptografada.
+* Controle de acesso baseado em perfil (admin, produção, vendas).
+* Os dados de produção e vendas devem ser armazenados em banco seguro com backup diário.
+* Conformidade com a LGPD no tratamento de dados de clientes.
 
 #### 3.3.3 Confiabilidade
-Especificar os fatores necessários para estabelecer a confiabilidade requerida do sistema de software no momento da entrega.
+* O sistema deve manter uma taxa de disponibilidade mínima de 99% durante o horário comercial.
+* Tolerância a falhas em caso de queda de energia (uso de no-break e salvamento automático local).
 
 #### 3.3.4 Disponibilidade
-Especificar os fatores necessários para garantir um nível definido de disponibilidade para todo o sistema, como ponto de verificação, recuperação e reinicialização.
+* Funcionalidade de backup e restauração completa.
+* Checkpoints automáticos a cada 30 minutos de uso ativo.
 
 ### 3.4 Conformidade
-Especificar os requisitos derivados de normas ou regulamentos existentes, incluindo:
-* Formato de relatórios  
-* Nomenclatura de dados  
-* Procedimentos contábeis  
-* Rastreabilidade de auditoria  
-
-Por exemplo, isso pode especificar que o software deva registrar toda atividade de processamento. Essas trilhas são necessárias em algumas aplicações para atender a padrões mínimos regulatórios ou financeiros. Um requisito de rastreamento de auditoria pode, por exemplo, exigir que todas as alterações em um banco de dados de folha de pagamento sejam registradas com os valores antes e depois.
+* Geração de relatórios compatíveis com normas da vigilância sanitária (mapas de rastreabilidade, controle de produção).
+* Suporte à nomenclatura de ingredientes e aditivos conforme legislação do MAPA (Ministério da Agricultura).
+* Registro de alterações nos dados de lotes e estoque para fins de auditoria interna.
 
 ### 3.5 Projeto e Implementação
 
 #### 3.5.1 Instalação
-Restrições para garantir que o software funcionará corretamente na plataforma de destino.
+* Deve funcionar em ambiente local (intranet) ou remoto (cloud).
+* Instalação simples via script automatizado.
 
 #### 3.5.2 Distribuição
-Restrições nos componentes do software para se adequarem à estrutura geograficamente distribuída da organização, à distribuição dos dados ou dos dispositivos controlados.
+* Suporte a múltiplas unidades da queijaria com bancos de dados sincronizados via nuvem.
 
 #### 3.5.3 Manutenibilidade
-Especificar atributos do software relacionados à facilidade de manutenção. Podem incluir requisitos de modularidade, interfaces ou limitação de complexidade. Requisitos não devem ser colocados aqui apenas por serem boas práticas de design.
+* Código modular com documentação técnica e manual de manutenção.
+* Sistema deve permitir ativação/desativação de módulos conforme necessidade.
 
 #### 3.5.4 Reusabilidade
-<!-- TODO: elaborar uma descrição -->
+* Módulos como cadastro de produtos e geração de etiquetas devem ser reutilizáveis em outros contextos (ex: fábrica de embutidos).
 
 #### 3.5.5 Portabilidade
-Especificar atributos relacionados à facilidade de portar o software para outras máquinas ou sistemas operacionais.
+* Compatível com Windows 10+, Linux e macOS.
+* Interface web acessível por dispositivos móveis.
 
 #### 3.5.6 Custo
-Especificar o custo monetário do produto de software.
+* Custo de desenvolvimento estimado em R$ x,xx.
+* Licenciamento anual para manutenção e suporte técnico: R$ x,xx.
 
 #### 3.5.7 Prazo
-Especificar o cronograma de entrega do produto de software.
+* Entrega da primeira versão funcional: x dias após início do projeto.
+* Entregas parciais a cada 1(uma) semana para validação incremental.
 
 #### 3.5.8 Prova de Conceito
-<!-- TODO: elaborar uma descrição -->
+* Um protótipo funcional com registro de produção e controle de estoque será entregue na primeira iteração, para validação em campo na queijaria piloto.
 
 ## 4. Verificação
 > Esta seção fornece as abordagens e métodos de verificação planejados para qualificar o software. As informações de verificação devem ser fornecidas paralelamente aos itens de requisitos da Seção 3. O propósito do processo de verificação é fornecer evidências objetivas de que um sistema ou elemento do sistema atende aos requisitos e características especificadas.
