@@ -101,6 +101,14 @@ Nosso cliente necessita de uma ferramenta de amostroário para os laticínios of
 
 O usuário alvo deste projeto se encaixa em pessoas jovens e adultas, possuindo acesso regular a internet por meio de computadores, com mínimo grau acadêmico de alfabetização e qualquer classe econômica, com interesse em consumir produtos derivados do leite com regularidade constante.
 
+### 2.5 Suposições e Dependências
+
+Este projeto possui algumas premissas e dependências que podem impactar os requisitos definidos nesta especificação. Presume-se que os usuários utilizarão navegadores modernos (como Google Chrome, Mozilla Firefox ou Microsoft Edge) com JavaScript habilitado. Também será feito uso de bibliotecas e frameworks de código aberto que precisam estar disponíveis e mantidos ao longo do desenvolvimento. O ambiente de produção deverá suportar conexões seguras, funcionamento de APIs de backend e serviços de banco de dados MySQL. Supõe-se, ainda, que não haverá alterações significativas em normas regulatórias como a LGPD (Lei Geral de Proteção de Dados) durante o período de desenvolvimento. Caso essas premissas se alterem ou não se confirmem, o escopo, as funcionalidades e o cronograma do projeto poderão ser impactados.
+
+### 2.6 Rateio de Requisitos
+
+Os requisitos do sistema foram organizados em etapas de desenvolvimento progressivo, iniciando pela criação do design da interface, que envolve a definição da estrutura visual das páginas, identidade visual, responsividade e usabilidade. Em seguida, será implementado o sistema de login, responsável pela autenticação de usuários, exigindo a integração entre frontend, backend e a configuração de regras de segurança. Paralelamente, será feita a inserção e configuração do banco de dados, que armazenará informações de usuários, produtos e sessões. Após essa etapa, será desenvolvido o módulo de cadastro de produtos, permitindo a inclusão, edição e exclusão de itens do catálogo por usuários autorizados, com campos como nome, descrição, preço, imagem e categoria. Por fim, será implementada a funcionalidade de carrinho de compras, permitindo aos usuários adicionar produtos, visualizar o total, remover itens e preparar o pedido para uma futura etapa de finalização. Essa distribuição busca garantir entregas parciais funcionais, possibilitando validações contínuas ao longo do desenvolvimento.
+
 ## 3. Requisitos
 > Esta seção especifica os requisitos do sistema de software de gestão da queijaria. Os requisitos aqui descritos fornecem o detalhamento necessário para o desenvolvimento do sistema e posterior verificação pela equipe de testes.
 
