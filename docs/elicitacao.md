@@ -99,11 +99,11 @@ Nosso cliente necessita de uma ferramenta de amostroário para os laticínios of
 
 ### 2.4 Características dos Usuários
 
-O usuário alvo deste projeto se encaixa em pessoas jovens e adultas, possuindo acesso regular a internet por meio de computadores, com mínimo grau acadêmico de alfabetização e qualquer classe econômica, com interesse em consumir produtos derivados do leite com regularidade constante.
+O usuário alvo deste projeto se encaixa em clientes com interesse em consumir queijos das mais diversas variedades, possuindo acesso a internet por qualquer dispositivo, sendo estes pessoas que já consomem dos produtos ou novos usuários em potencial. Também são alvos os funcionários do estabelecimento comercial, que utilizarão o sistema para armazenamento e coleta de informações sobre vendas e produtos disponíveis.
 
 ### 2.5 Suposições e Dependências
 
-Este projeto possui algumas premissas e dependências que podem impactar os requisitos definidos nesta especificação. Presume-se que os usuários utilizarão navegadores modernos (como Google Chrome, Mozilla Firefox ou Microsoft Edge) com JavaScript habilitado. Também será feito uso de bibliotecas e frameworks de código aberto que precisam estar disponíveis e mantidos ao longo do desenvolvimento. O ambiente de produção deverá suportar conexões seguras, funcionamento de APIs de backend e serviços de banco de dados MySQL. Supõe-se, ainda, que não haverá alterações significativas em normas regulatórias como a LGPD (Lei Geral de Proteção de Dados) durante o período de desenvolvimento. Caso essas premissas se alterem ou não se confirmem, o escopo, as funcionalidades e o cronograma do projeto poderão ser impactados.
+Este projeto possui algumas premissas e dependências que podem impactar os requisitos definidos nesta especificação. Presume-se que os usuários utilizarão navegadores modernos (como Google Chrome, Mozilla Firefox ou Microsoft Edge) com JavaScript habilitado. Também será feito uso de bibliotecas e frameworks de código aberto que precisam estar disponíveis e mantidos ao longo do desenvolvimento. O ambiente de produção deverá suportar conexões seguras, funcionamento de APIs de backend e serviços de banco de dados MySQL. Supõe-se, ainda, que não haverá alterações significativas durante o período de desenvolvimento. Caso essas premissas se alterem ou não se confirmem, o escopo, as funcionalidades e o cronograma do projeto poderão ser impactados.
 
 ### 2.6 Rateio de Requisitos
 
@@ -150,17 +150,11 @@ Os requisitos do sistema foram organizados em etapas de desenvolvimento progress
 * Atalhos de teclado para acelerar cadastros e consultas.
 
 #### 3.1.2 Interfaces de Hardware
-* Comunicação com balanças eletrônicas via porta USB ou rede local.
-* Impressoras térmicas para etiquetas de rastreabilidade e códigos QR.
-* Leitor de código de barras para conferência de estoque e vendas.
-* Opcional: integração com sensores de temperatura e umidade da câmara de maturação (via IoT).
+* Dispositivos conectados à internet
 
 #### 3.1.3 Interfaces de Software
 * Banco de dados MySQL.
-* Sistema operacional Linux (Ubuntu 22.04 ou superior) e Windows (7 ou  superior).
-* Integração com sistemas de emissão de nota fiscal eletrônica (NFe).
-* APIs para conexão com plataformas de e-commerce (ex: Shopify, WooCommerce).
-* Sistema de backup automático em nuvem (ex: AWS S3).
+* Sistema operacional Linux (Ubuntu 22.04 ou superior) e Windows (10 ou superior).
 
 ### 3.2 Funcionais
 * RF01: O sistema deve permitir o cadastro, edição e exclusão de produtos pelo administrador (dono da loja).
@@ -175,38 +169,35 @@ Os requisitos do sistema foram organizados em etapas de desenvolvimento progress
 
 #### 3.3.1 Desempenho
 * O sistema deve responder a qualquer requisição em até 2 segundos em condições normais de operação (< 10 usuários simultâneos).
-* Relatórios devem ser gerados em no máximo 5 segundos para até 1.000 registros.
+* Relatórios devem ser gerados em no máximo 8 segundos para até 1.000 registros.
 
 #### 3.3.2 Segurança
 * Autenticação por login e senha criptografada.
 * Controle de acesso baseado em perfil (admin, produção, vendas).
-* Os dados de produção e vendas devem ser armazenados em banco seguro com backup diário.
-* Conformidade com a LGPD no tratamento de dados de clientes.
+* Os dados de produção e vendas devem ser armazenados em banco seguro.
 
 #### 3.3.3 Confiabilidade
 * O sistema deve manter uma taxa de disponibilidade mínima de 99% durante o horário comercial.
-* Tolerância a falhas em caso de queda de energia (uso de no-break e salvamento automático local).
+* Tolerância a falhas em caso de queda de energia.
 
 #### 3.3.4 Disponibilidade
-* Funcionalidade de backup e restauração completa.
-* Checkpoints automáticos a cada 30 minutos de uso ativo.
+* xxt
 
 ### 3.4 Conformidade
-* Geração de relatórios compatíveis com normas da vigilância sanitária (mapas de rastreabilidade, controle de produção).
-* Suporte à nomenclatura de ingredientes e aditivos conforme legislação do MAPA (Ministério da Agricultura).
+* Geração de relatórios comerciais.
 * Registro de alterações nos dados de lotes e estoque para fins de auditoria interna.
 
 ### 3.5 Projeto e Implementação
 
 #### 3.5.1 Instalação
-* Deve funcionar em ambiente local (intranet) ou remoto (cloud).
-* Instalação simples via script automatizado.
+* Deve funcionar em ambiente local (intranet).
+* Acesso simples via web.
 
 #### 3.5.2 Distribuição
-* Suporte a múltiplas unidades da queijaria com bancos de dados sincronizados via nuvem.
+* Suporte a queijaria com bancos de dados.
 
 #### 3.5.3 Manutenibilidade
-* Código modular com documentação técnica e manual de manutenção.
+* Código modular com documentação técnica e manual de instrução.
 * Sistema deve permitir ativação/desativação de módulos conforme necessidade.
 
 #### 3.5.4 Reusabilidade
@@ -225,7 +216,7 @@ Os requisitos do sistema foram organizados em etapas de desenvolvimento progress
 * Entregas parciais a cada 1(uma) semana para validação incremental.
 
 #### 3.5.8 Prova de Conceito
-* Um protótipo funcional com registro de produção e controle de estoque será entregue na primeira iteração, para validação em campo na queijaria piloto.
+* Um protótipo funcional com registro de produção e controle de estoque será entregue na primeira iteração, para validação em campo na queijaria.
 
 ## 4. Verificação
 > Esta seção fornece as abordagens e métodos de verificação planejados para qualificar o software. As informações de verificação devem ser fornecidas paralelamente aos itens de requisitos da Seção 3. O propósito do processo de verificação é fornecer evidências objetivas de que um sistema ou elemento do sistema atende aos requisitos e características especificadas.
