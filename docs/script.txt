@@ -18,6 +18,7 @@ CREATE TABLE produtos(
     n_quantprod INT,
     n_valoprod DECIMAL(10, 2) NOT NULL,
     c_descprod TEXT,
+    b_imgprod MEDIUMBLOB,
 	criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (cod_end) REFERENCES endereco(cod_end)
 );
