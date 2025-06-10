@@ -1,0 +1,47 @@
+.forms {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    margin: 3vh;
+}
+
+.forms form {
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    padding: 5vh 3vh;
+    background-color: #f9f9f9;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px 0px;
+}
+
+.forms svg {
+    width: 3%;
+}   
+
+.forms button {
+    background-color: transparent;
+    cursor: pointer;
+    padding: 0.67vh 1.33vh;
+    border: 1px solid rgba(0, 0, 0, 0.2); 
+    border-radius: 5px; 
+}
+
+.input-box {
+    background-color: transparent;
+    margin: 2vh;
+    width: 100%;
+    height: 100%;
+}
+
+.input-box input {
+    width: 50%;
+    height: 50%;
+    font-size: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+}
+
+.register {
+    margin-top: 3vh;
+}

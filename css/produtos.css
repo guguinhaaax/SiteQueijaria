@@ -1,0 +1,28 @@
+#produtos {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; 
+    gap: 20px;
+    padding: 20px;
+}
+
+#produtos img {
+    width: 30%;
+    max-width: 20vw;
+    height: auto;
+    object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    #produtos img {
+        width: 45%;
+        max-width: 45vw;
+    }
+}
+
+@media (max-width: 480px) {
+    #produtos img {
+        width: 100%;
+        max-width: 100%;
+    }
+}
