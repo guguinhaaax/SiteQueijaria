@@ -45,14 +45,14 @@
                 <ul>
                     <li><a href="index.html">Início</a></li>
                     <li><a href="produtos.html">Produtos</a></li>
-                    <li><a href="contato.html">Contato</a></li>
+                    <li><a href="#contatos">Contato</a></li>
                 </ul>
             </div>
         </nav>
     </header>
 
     <main class="forms">
-        <form>
+        <form id="loginForm">
             <h2>Login</h2>
 
             <div class="input-box">
@@ -62,7 +62,7 @@
                         d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM12.735 14c.618 0 1.093-.561.872-1.139a6.002 6.002 0 0 0-11.215 0c-.22.578.254 1.139.872 1.139h9.47Z" />
                 </svg>
 
-                <input placeholder="seulogin@email.com" type="email">
+                <input placeholder="seulogin@email.com" type="email" id="email" required>
             </div>
 
             <div class="input-box">
@@ -73,7 +73,7 @@
                         clip-rule="evenodd" />
                 </svg>
 
-                <input placeholder="Senha" type="password">
+                <input placeholder="Senha" type="password" id="senha" required>
             </div>
 
             <button type="submit"> Entrar </button>
@@ -85,7 +85,7 @@
     </main>
 
     <footer>
-        <div class="container">
+        <div class="container" id="contato">
             <div class="contatos-footer">
                 <h3>Contatos</h3>
                 <p>
@@ -107,7 +107,6 @@
                     <li><a href="index.html">Início</a></li>
                     <li><a href="produtos.html">Produtos</a></li>
                     <li><a href="login.html">Login</a></li>
-                    <li><a href="contato.html">Contato</a></li>
                 </ul>
             </div>
         </div>
@@ -118,6 +117,33 @@
     </footer>
 
     <script src="js/main.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+
+            try {
+                const response = await fetch('php/login_process.php', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, senha })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert(data.message);
+                    window.location.href = 'index.html'; 
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Ocorreu um erro ao tentar fazer login.');
+            }
+        });
+    </script>
 </body>
 
 </html>

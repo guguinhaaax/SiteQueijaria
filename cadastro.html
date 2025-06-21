@@ -46,14 +46,14 @@
                 <ul>
                     <li><a href="index.html">Início</a></li>
                     <li><a href="produtos.html">Produtos</a></li>
-                    <li><a href="contato.html">Contato</a></li>
+                    <li><a href="#contato">Contato</a></li>
                 </ul>
             </div>
         </nav>
     </header>
 
     <main class="forms">
-        <form>
+        <form id="cadastroForm">
             <h2>Cadastre-se</h2>
 
             <div class="input-box">
@@ -64,7 +64,7 @@
                         clip-rule="evenodd" />
                 </svg>
 
-                <input placeholder="Seu nome" type="text">
+                <input placeholder="Seu nome" type="text" id="nome" required>
             </div>
 
             <div class="input-box">
@@ -74,7 +74,7 @@
                         d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM12.735 14c.618 0 1.093-.561.872-1.139a6.002 6.002 0 0 0-11.215 0c-.22.578.254 1.139.872 1.139h9.47Z" />
                 </svg>
 
-                <input placeholder="E-mail" type="email">
+                <input placeholder="E-mail" type="email" id="email" required>
             </div>
 
             <div class="input-box">
@@ -85,7 +85,7 @@
                         clip-rule="evenodd" />
                 </svg>
 
-                <input placeholder="Senha" type="password">
+                <input placeholder="Senha" type="password" id="senha" required>
             </div>
 
             <button type="submit"> Cadastrar </button>
@@ -97,7 +97,7 @@
     </main>
 
     <footer>
-        <div class="container">
+        <div class="container" id="contato">
             <div class="contatos-footer">
                 <h3>Contatos</h3>
                 <p>
@@ -119,7 +119,6 @@
                     <li><a href="index.html">Início</a></li>
                     <li><a href="produtos.html">Produtos</a></li>
                     <li><a href="login.html">Login</a></li>
-                    <li><a href="contato.html">Contato</a></li>
                 </ul>
             </div>
         </div>
@@ -130,6 +129,34 @@
     </footer>
 
     <script src="js/main.js"></script>
+    <script>
+        document.getElementById('cadastroForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const nome = document.getElementById('nome').value;
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+
+            try {
+                const response = await fetch('php/register_process.php', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nome, email, senha })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert(data.message);
+                    window.location.href = 'login.html';
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Ocorreu um erro ao tentar cadastrar.');
+            }
+        });
+    </script>
 </body>
 
 </html>

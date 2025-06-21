@@ -1,42 +1,39 @@
-CREATE DATABASE projeto_queijaria;
-USE projeto_queijaria;
+CREATE DATABASE queijaria;
 
-CREATE TABLE endereco(
-	cod_end INT AUTO_INCREMENT PRIMARY KEY,
-    c_ruaend VARCHAR(50),
-    c_cepend varchar(9),
-    c_bairroend VARCHAR(25),
-    n_numend INT,
-    c_compend VARCHAR(50),
-    c_cidend VARCHAR(30)
+USE queijaria;
+
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    is_admin BOOLEAN DEFAULT FALSE
 );
 
-CREATE TABLE produtos(
-	cod_prod INT AUTO_INCREMENT PRIMARY KEY,
-	cod_end INT NOT NULL,
-	c_nomeprod VARCHAR(30),
-    n_quantprod INT,
-    n_valoprod DECIMAL(10, 2) NOT NULL,
-    c_descprod TEXT,
-    b_imgprod MEDIUMBLOB,
-	criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	FOREIGN KEY (cod_end) REFERENCES endereco(cod_end)
+CREATE TABLE produtos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    preco DECIMAL(10, 2) NOT NULL,
+    imagem MEDIUMBLOB,
+    estoque INT NOT NULL DEFAULT 0
 );
 
-CREATE TABLE usuarios(
-	cod_usuario INT AUTO_INCREMENT PRIMARY KEY,
-    c_nomeusua VARCHAR(50) NOT NULL, 
-    c_emailusua VARCHAR(256) NOT NULL,
-    c_senhausua VARCHAR(60) NOT NULL,
-	criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE pedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    data_pedido DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('pendente', 'processando', 'concluido', 'cancelado') DEFAULT 'pendente',
+    tipo_entrega ENUM('retirada', 'mototaxi') NOT NULL,
+    total DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
-CREATE TABLE faturamento (
-    cod_faturamento INT PRIMARY KEY AUTO_INCREMENT,
-    cod_prod INT NOT NULL,
-    cod_usuario INT NOT NULL,
-    n_quant INT NOT NULL,
-    d_data_venda TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (cod_prod) REFERENCES produtos(cod_prod),
-    FOREIGN KEY (cod_usuario) REFERENCES usuarios(cod_usuario)
+CREATE TABLE itens_pedido (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pedido_id INT NOT NULL,
+    produto_id INT NOT NULL,
+    quantidade INT NOT NULL,
+    preco_unitario DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
+    FOREIGN KEY (produto_id) REFERENCES produtos(id)
 );
