@@ -67,6 +67,22 @@
     <script src="js/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const userAuth = JSON.parse(localStorage.getItem('userAuth'));
+    
+    if (!userAuth || !userAuth.isAuthenticated) {
+        showNotification('Você precisa estar logado para finalizar a compra.', 'error');
+        setTimeout(() => {
+            window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+        }, 1500);
+        return;
+    }
+            // Verificação de login atualizada
+        const authStatus = JSON.parse(localStorage.getItem('userAuth'));
+        if (!authStatus || !authStatus.isAuthenticated) {
+            showNotification('Você precisa estar logado para acessar o carrinho.', 'error');
+            setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+            return;
+        }
             // Referências aos elementos do DOM
             const carrinhoItensContainer = document.getElementById('carrinho-itens-container');
             const carrinhoResumoContainer = document.getElementById('carrinho-resumo-container');
@@ -168,13 +184,13 @@
 
             // Listener do botão de finalizar pedido (com a correção do usuario_id)
             finalizarPedidoBtn.addEventListener('click', async function () {
-                const usuarioLogado = JSON.parse(localStorage.getItem('usuario'));
+                const userAuth = JSON.parse(localStorage.getItem('userAuth'));
 
-                if (!usuarioLogado || !usuarioLogado.id) {
-                    showNotification('Você precisa estar logado para finalizar um pedido.', 'error');
-                    setTimeout(() => { window.location.href = 'login.html'; }, 1500);
-                    return;
-                }
+if (!userAuth || !userAuth.isAuthenticated || !userAuth.id) {
+    showNotification('Você precisa estar logado para finalizar um pedido.', 'error');
+    setTimeout(() => { window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href); }, 1500);
+    return;
+}
 
                 if (carrinho.length === 0) {
                     showNotification('Seu carrinho está vazio.', 'error');
@@ -188,7 +204,7 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            usuario_id: usuarioLogado.id,
+                            usuario_id: userAuth.id,
                             carrinho: carrinho.map(item => ({ produto_id: item.id, quantidade: item.quantidade })),
                             tipo_entrega: tipoEntrega
                         })

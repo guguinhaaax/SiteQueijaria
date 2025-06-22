@@ -44,35 +44,63 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function checkAuthStatus() {
-        try {
-            const response = await fetch('php/auth_status.php');
-            const data = await response.json();
-
-            if (data.isAuthenticated) {
-                if(navLogin) navLogin.style.display = 'none';
-                if(navCadastro) navCadastro.style.display = 'none';
-                if(navConta) navConta.style.display = 'inline-block';
-                if(navLogout) navLogout.style.display = 'inline-block';
-                if(cartLink) cartLink.style.display = 'inline-block';
-
-                if (data.isAdmin) {
-                   if(navAdmin) navAdmin.style.display = 'inline-block';
-                } else {
-                   if(navAdmin) navAdmin.style.display = 'none';
-                }
-            } else {
-                if(navLogin) navLogin.style.display = 'inline-block';
-                if(navCadastro) navCadastro.style.display = 'inline-block';
-                if(navConta) navConta.style.display = 'none';
-                if(navAdmin) navAdmin.style.display = 'none';
-                if(navLogout) navLogout.style.display = 'none';
-                if(cartLink) cartLink.style.display = 'none';
+        console.log('Verificando auth status...', {
+    localStorage: localStorage.getItem('userAuth'),
+    session: await (await fetch('php/auth_status.php')).json()
+});
+    try {
+        const response = await fetch('php/auth_status.php');
+        const serverAuth = await response.json();
+        
+        // Sincroniza com os dados locais
+        const localAuth = JSON.parse(localStorage.getItem('userAuth')) || {};
+        
+        if (serverAuth.isAuthenticated) {
+            // Atualiza localStorage com dados do servidor
+            localStorage.setItem('userAuth', JSON.stringify({
+                ...localAuth,
+                isAuthenticated: true,
+                id: serverAuth.user_id,
+                name: serverAuth.user_name,
+                isAdmin: serverAuth.is_admin
+            }));
+            
+            // Atualiza a UI
+            updateAuthUI(true, serverAuth.is_admin);
+        } else {
+            // Mantém os dados locais se houver, mas marca como não autenticado
+            if (localAuth.isAuthenticated) {
+                localStorage.setItem('userAuth', JSON.stringify({
+                    ...localAuth,
+                    isAuthenticated: false
+                }));
             }
-        } catch (error) {
-            console.error('Erro ao verificar status de autenticação:', error);
-            // Assumir não logado em caso de erro
+            updateAuthUI(false, false);
         }
+    } catch (error) {
+        console.error('Erro ao verificar status:', error);
+        // Fallback para localStorage
+        const localAuth = JSON.parse(localStorage.getItem('userAuth')) || {};
+        updateAuthUI(localAuth.isAuthenticated, localAuth.isAdmin);
     }
+}
+
+function updateAuthUI(isAuthenticated, isAdmin) {
+    if (isAuthenticated) {
+        if(navLogin) navLogin.style.display = 'none';
+        if(navCadastro) navCadastro.style.display = 'none';
+        if(navConta) navConta.style.display = 'inline-block';
+        if(navLogout) navLogout.style.display = 'inline-block';
+        if(cartLink) cartLink.style.display = 'inline-block';
+        if(navAdmin) navAdmin.style.display = isAdmin ? 'inline-block' : 'none';
+    } else {
+        if(navLogin) navLogin.style.display = 'inline-block';
+        if(navCadastro) navCadastro.style.display = 'inline-block';
+        if(navConta) navConta.style.display = 'none';
+        if(navAdmin) navAdmin.style.display = 'none';
+        if(navLogout) navLogout.style.display = 'none';
+    }
+}
 
     if (navLogout) {
         navLogout.addEventListener('click', async function(event) {
