@@ -38,10 +38,30 @@ switch ($method) {
                 echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
             }
         } else if (isAuthenticated()) {
-            // Cliente vê apenas seus próprios pedidos
-            $stmt = $pdo->prepare("SELECT * FROM pedidos WHERE usuario_id = ? ORDER BY data_pedido DESC");
-            $stmt->execute([$_SESSION['user_id']]);
-            echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+            // Cliente vê apenas seus próprios pedidos COM OS ITENS INCLUSOS
+            try {
+                // Busca os pedidos do usuário
+                $stmt_pedidos = $pdo->prepare("SELECT * FROM pedidos WHERE usuario_id = ? ORDER BY data_pedido DESC");
+                $stmt_pedidos->execute([$_SESSION['user_id']]);
+                $pedidos = $stmt_pedidos->fetchAll(PDO::FETCH_ASSOC);
+
+                // Para cada pedido, busca os itens
+                foreach ($pedidos as &$pedido) {
+                    $stmt_itens = $pdo->prepare("
+                        SELECT ip.*, pr.nome as produto_nome 
+                        FROM itens_pedido ip 
+                        JOIN produtos pr ON ip.produto_id = pr.id 
+                        WHERE ip.pedido_id = ?
+                    ");
+                    $stmt_itens->execute([$pedido['id']]);
+                    $pedido['itens'] = $stmt_itens->fetchAll(PDO::FETCH_ASSOC);
+                }
+
+                echo json_encode($pedidos);
+            } catch (PDOException $e) {
+                http_response_code(500);
+                echo json_encode(['message' => 'Erro ao buscar pedidos: ' . $e->getMessage()]);
+            }
         } else {
             http_response_code(401);
             echo json_encode(['message' => 'Não autorizado. Faça login para ver seus pedidos.']);
@@ -60,7 +80,6 @@ switch ($method) {
         $data = json_decode(file_get_contents('php://input'), true);
         $carrinho = $data['carrinho'] ?? []; // Array de {produto_id, quantidade}
         
-        // CORREÇÃO: O tipo de entrega agora é recebido do cliente e validado
         $tipo_entrega = $data['tipo_entrega'] ?? '';
 
         if (empty($carrinho) || !is_array($carrinho)) {
@@ -69,7 +88,6 @@ switch ($method) {
             exit();
         }
         
-        // Validação do tipo de entrega contra os valores permitidos no ENUM da tabela
         if (!in_array($tipo_entrega, ['retirada', 'mototaxi'])) {
             http_response_code(400);
             echo json_encode(['message' => "Tipo de entrega inválido. Valores permitidos: 'retirada', 'mototaxi'."]);
@@ -81,8 +99,7 @@ switch ($method) {
             $total_pedido = 0;
             $itens_para_inserir = [];
 
-            // Prepara as queries fora do loop para melhor performance
-            $stmt_produto = $pdo->prepare("SELECT preco, estoque FROM produtos WHERE id = ? FOR UPDATE"); // FOR UPDATE para travar a linha
+            $stmt_produto = $pdo->prepare("SELECT preco, estoque FROM produtos WHERE id = ? FOR UPDATE");
             $stmt_update_estoque = $pdo->prepare("UPDATE produtos SET estoque = estoque - ? WHERE id = ?");
 
             foreach ($carrinho as $item) {
@@ -97,7 +114,6 @@ switch ($method) {
                 $produto = $stmt_produto->fetch();
 
                 if (!$produto || $produto['estoque'] < $quantidade) {
-                    // Lança uma exceção para ser capturada pelo bloco catch
                     throw new Exception('Estoque insuficiente para o produto ID ' . $produto_id);
                 }
 
@@ -109,7 +125,6 @@ switch ($method) {
                     'preco_unitario' => $produto['preco']
                 ];
 
-                // Atualiza o estoque do produto
                 $stmt_update_estoque->execute([$quantidade, $produto_id]);
             }
 
@@ -123,14 +138,12 @@ switch ($method) {
             }
 
             $pdo->commit();
-            // RF06: O sistema deve notificar o administrador sobre novos pedidos realizados.
             error_log("Novo pedido realizado! ID do Pedido: " . $pedido_id . " por usuário ID: " . $_SESSION['user_id']);
 
             echo json_encode(['message' => 'Pedido realizado com sucesso!', 'pedido_id' => $pedido_id]);
 
-        } catch (Exception $e) { // Captura PDOException e exceções customizadas
+        } catch (Exception $e) {
             $pdo->rollBack();
-            // Define o código de status HTTP apropriado se a exceção for sobre estoque
             if (strpos($e->getMessage(), 'Estoque insuficiente') !== false) {
                 http_response_code(400);
             } else {
@@ -159,36 +172,30 @@ switch ($method) {
         }
 
         try {
-            // Se o pedido for cancelado, devemos restaurar o estoque
             if ($status === 'cancelado') {
                 $pdo->beginTransaction();
 
-                // Busca o status atual para evitar restaurar o estoque de um pedido já cancelado
                 $stmt_status = $pdo->prepare("SELECT status FROM pedidos WHERE id = ?");
                 $stmt_status->execute([$pedido_id]);
                 $status_atual = $stmt_status->fetchColumn();
 
                 if ($status_atual !== 'cancelado') {
-                    // Busca todos os itens do pedido para saber as quantidades a serem retornadas
                     $stmt_itens = $pdo->prepare("SELECT produto_id, quantidade FROM itens_pedido WHERE pedido_id = ?");
                     $stmt_itens->execute([$pedido_id]);
                     $itens = $stmt_itens->fetchAll(PDO::FETCH_ASSOC);
 
-                    // Devolve os itens ao estoque
                     foreach ($itens as $item) {
                         $stmt_restore = $pdo->prepare("UPDATE produtos SET estoque = estoque + ? WHERE id = ?");
                         $stmt_restore->execute([$item['quantidade'], $item['produto_id']]);
                     }
                 }
                 
-                // Atualiza o status do pedido
                 $stmt = $pdo->prepare("UPDATE pedidos SET status = ? WHERE id = ?");
                 $stmt->execute([$status, $pedido_id]);
                 
                 $pdo->commit();
 
             } else {
-                // Para outros status, apenas atualiza
                 $stmt = $pdo->prepare("UPDATE pedidos SET status = ? WHERE id = ?");
                 $stmt->execute([$status, $pedido_id]);
             }
