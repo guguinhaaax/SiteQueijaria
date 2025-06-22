@@ -51,7 +51,8 @@
         <h2>Meus Pedidos</h2>
         <p>Acompanhe aqui o histórico dos seus pedidos realizados.</p>
         <br>
-        <div id="meus-pedidos-lista">
+        <div id="meus-pedidos-lista" class="pedidos-container">
+            <!-- Os pedidos serão carregados aqui via JavaScript -->
         </div>
     </main>
     
@@ -76,60 +77,72 @@
     <script src="js/main.js"></script>
     <script>
         async function loadUserOrders() {
-            const listaPedidosDiv = document.getElementById('meus-pedidos-lista');
-            try {
-                const response = await fetch('php/pedidos_api.php');
-                if (!response.ok) {
-                    throw new Error('Falha ao buscar os pedidos.');
-                }
-                const orders = await response.json();
-
-                listaPedidosDiv.innerHTML = '';
-
-                if (orders.length === 0) {
-                    listaPedidosDiv.innerHTML = '<div class="nenhum-pedido"><h3>Você ainda não fez nenhum pedido.</h3><p>Explore nossos <a href="produtos.html">produtos</a> e faça sua primeira compra!</p></div>';
-                    return;
-                }
-
-                orders.forEach(order => {
-                    const orderDate = new Date(order.data_pedido).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    const orderTotal = parseFloat(order.total).toFixed(2);
-
-                    let itensHtml = '';
-                    order.itens.forEach(item => {
-                        itensHtml += `
-                            <div class="pedido-item-produto">
-                                <img src="php/produtos_api.php?get_image=true&id=${item.produto_id}" alt="${item.nome_produto}" class="produto-imagem-pedido">
-                                <div class="produto-detalhes">
-                                    <strong>${item.nome_produto}</strong>
-                                    <span>Quantidade: ${item.quantidade} | Preço Un.: R$ ${parseFloat(item.preco_unitario).toFixed(2)}</span>
-                                </div>
-                            </div>
-                        `;
-                    });
-
-                    const orderDiv = document.createElement('div');
-                    orderDiv.classList.add('pedido-item');
-                    orderDiv.innerHTML = `
-                        <div class="pedido-header">
-                            <div>
-                                <strong>Pedido #${order.id}</strong> - <span>${orderDate}</span>
-                            </div>
-                            <span class="status ${order.status}">${order.status}</span>
-                            <span>Total: <strong>R$ ${orderTotal}</strong></span>
-                        </div>
-                        <div class="pedido-body">
-                            ${itensHtml}
-                        </div>
-                    `;
-                    listaPedidosDiv.appendChild(orderDiv);
-                });
-
-            } catch (error) {
-                console.error('Erro ao carregar pedidos:', error);
-                listaPedidosDiv.innerHTML = '<div class="nenhum-pedido"><h3>Ocorreu um erro ao buscar seus pedidos.</h3><p>Por favor, tente novamente mais tarde.</p></div>';
-            }
+    const listaPedidosDiv = document.getElementById('meus-pedidos-lista');
+    try {
+        const response = await fetch('php/pedidos_api.php');
+        if (!response.ok) {
+            throw new Error('Falha ao buscar os pedidos.');
         }
+        const orders = await response.json();
+
+        listaPedidosDiv.innerHTML = '';
+
+        if (orders.length === 0) {
+            listaPedidosDiv.innerHTML = '<div class="nenhum-pedido"><h3>Você ainda não fez nenhum pedido.</h3><p>Explore nossos <a href="produtos.html">produtos</a> e faça sua primeira compra!</p></div>';
+            return;
+        }
+
+        orders.forEach(order => {
+            const orderDate = new Date(order.data_pedido).toLocaleDateString('pt-BR', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric' 
+            });
+            const orderTotal = parseFloat(order.total).toFixed(2);
+
+            let itensHtml = '';
+            order.itens.forEach(item => {
+                itensHtml += `
+                    <div class="pedido-item-produto">
+                        <img src="php/produtos_api.php?get_image=true&id=${item.produto_id}" 
+                             alt="${item.nome_produto || 'Produto sem nome'}" 
+                             class="produto-imagem-pedido">
+                        <div class="produto-detalhes">
+                            <strong>${item.nome_produto || 'Produto sem nome'}</strong>
+                            <span>Quantidade: ${item.quantidade} | Preço Un.: R$ ${parseFloat(item.preco_unitario).toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const orderDiv = document.createElement('div');
+            orderDiv.classList.add('pedido-item');
+            orderDiv.innerHTML = `
+                <div class="pedido-header">
+                    <div>
+                        <strong>Pedido #${order.id}</strong> - <span>${orderDate}</span>
+                    </div>
+                    <span class="status ${order.status.toLowerCase()}">${order.status}</span>
+                    <span>Total: <strong>R$ ${orderTotal}</strong></span>
+                </div>
+                <div class="pedido-body">
+                    ${itensHtml}
+                </div>
+            `;
+            listaPedidosDiv.appendChild(orderDiv);
+        });
+
+    } catch (error) {
+        console.error('Erro ao carregar pedidos:', error);
+        listaPedidosDiv.innerHTML = `
+            <div class="nenhum-pedido">
+                <h3>Ocorreu um erro ao buscar seus pedidos.</h3>
+                <p>${error.message}</p>
+                <button onclick="loadUserOrders()">Tentar novamente</button>
+            </div>
+        `;
+    }
+}
 
         document.addEventListener('DOMContentLoaded', () => {
             fetch('php/auth_status.php')

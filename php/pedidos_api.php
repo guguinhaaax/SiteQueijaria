@@ -40,28 +40,29 @@ switch ($method) {
         } else if (isAuthenticated()) {
             // Cliente vê apenas seus próprios pedidos COM OS ITENS INCLUSOS
             try {
-                // Busca os pedidos do usuário
-                $stmt_pedidos = $pdo->prepare("SELECT * FROM pedidos WHERE usuario_id = ? ORDER BY data_pedido DESC");
-                $stmt_pedidos->execute([$_SESSION['user_id']]);
-                $pedidos = $stmt_pedidos->fetchAll(PDO::FETCH_ASSOC);
+        // Busca os pedidos do usuário
+        $stmt_pedidos = $pdo->prepare("SELECT * FROM pedidos WHERE usuario_id = ? ORDER BY data_pedido DESC");
+        $stmt_pedidos->execute([$_SESSION['user_id']]);
+        $pedidos = $stmt_pedidos->fetchAll(PDO::FETCH_ASSOC);
 
-                // Para cada pedido, busca os itens
-                foreach ($pedidos as &$pedido) {
-                    $stmt_itens = $pdo->prepare("
-                        SELECT ip.*, pr.nome as produto_nome 
-                        FROM itens_pedido ip 
-                        JOIN produtos pr ON ip.produto_id = pr.id 
-                        WHERE ip.pedido_id = ?
-                    ");
-                    $stmt_itens->execute([$pedido['id']]);
-                    $pedido['itens'] = $stmt_itens->fetchAll(PDO::FETCH_ASSOC);
-                }
+        // Para cada pedido, busca os itens
+        foreach ($pedidos as &$pedido) {
+            $stmt_itens = $pdo->prepare("
+                SELECT ip.*, pr.nome as nome_produto 
+                FROM itens_pedido ip 
+                JOIN produtos pr ON ip.produto_id = pr.id 
+                WHERE ip.pedido_id = ?
+            ");
+            $stmt_itens->execute([$pedido['id']]);
+            $pedido['itens'] = $stmt_itens->fetchAll(PDO::FETCH_ASSOC);
+        }
 
-                echo json_encode($pedidos);
-            } catch (PDOException $e) {
-                http_response_code(500);
-                echo json_encode(['message' => 'Erro ao buscar pedidos: ' . $e->getMessage()]);
-            }
+        echo json_encode($pedidos);
+
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Erro ao buscar pedidos: ' . $e->getMessage()]);
+    }
         } else {
             http_response_code(401);
             echo json_encode(['message' => 'Não autorizado. Faça login para ver seus pedidos.']);
