@@ -143,6 +143,21 @@ img {
     color: var(--text-color-light);
 }
 
+.localizacao h3 {
+    font-size: 19px;
+    margin-bottom: 2.5vh;
+    color: var(--text-color-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.localizacao p {
+    color: var(--border-color-light); 
+    font-size: 15px;
+    margin-bottom: 1.5vh;
+}
+
+
 .hero img {
     width: 100%;
     height: 62.5vh;

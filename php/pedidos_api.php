@@ -33,12 +33,32 @@ switch ($method) {
                     echo json_encode(['message' => 'Pedido não encontrado.']);
                 }
             } else {
-                // Lista todos os pedidos
-                $stmt = $pdo->query("SELECT p.*, u.nome as cliente_nome FROM pedidos p JOIN usuarios u ON p.usuario_id = u.id ORDER BY data_pedido DESC");
-                echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+                // --- INÍCIO DA CORREÇÃO ---
+                // O bloco anterior foi substituído para garantir que os itens sejam incluídos
+                // na lista de todos os pedidos para o administrador.
+                
+                // Lista todos os pedidos (PARA O ADMIN) com seus itens
+                $stmt_pedidos = $pdo->query("SELECT p.*, u.nome as cliente_nome FROM pedidos p JOIN usuarios u ON p.usuario_id = u.id ORDER BY data_pedido DESC");
+                $pedidos = $stmt_pedidos->fetchAll(PDO::FETCH_ASSOC);
+
+                // Para cada pedido, busca e anexa os seus itens
+                foreach ($pedidos as &$pedido) { // O "&" é importante para modificar o array original
+                    $stmt_itens = $pdo->prepare("
+                        SELECT ip.*, pr.nome as produto_nome 
+                        FROM itens_pedido ip 
+                        JOIN produtos pr ON ip.produto_id = pr.id 
+                        WHERE ip.pedido_id = ?
+                    ");
+                    $stmt_itens->execute([$pedido['id']]);
+                    $pedido['itens'] = $stmt_itens->fetchAll(PDO::FETCH_ASSOC);
+                }
+                
+                // Agora a resposta para o admin terá a mesma estrutura da resposta para o cliente
+                echo json_encode($pedidos);
+                // --- FIM DA CORREÇÃO ---
             }
         } else if (isAuthenticated()) {
-            // Cliente vê apenas seus próprios pedidos COM OS ITENS INCLUSOS
+            // Cliente vê apenas seus próprios pedidos COM OS ITENS INCLUSOS (esta parte já estava correta)
             try {
                 // Busca os pedidos do usuário
                 $stmt_pedidos = $pdo->prepare("SELECT * FROM pedidos WHERE usuario_id = ? ORDER BY data_pedido DESC");
@@ -68,6 +88,10 @@ switch ($method) {
         }
         break;
 
+    // O restante do arquivo (case 'POST', case 'PUT', etc.) permanece o mesmo
+    // ...
+    // ... (cole o restante do seu código PHP aqui) ...
+    // ...
     case 'POST':
         // RF03: O cliente deve poder adicionar produtos ao carrinho e realizar pedidos.
         // RF04: O sistema deve permitir ao cliente selecionar entre retirada no local ou entrega.

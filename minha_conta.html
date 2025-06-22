@@ -55,21 +55,41 @@
         </div>
     </main>
     
-    <footer class="main-footer">
+    <footer>
         <div class="container" id="contato">
-            <div class="footer-section">
-                <h3>Contato</h3>
-                <p>Email: contato@laticinioesperanca.com</p>
-                <p>Telefone: (35) 9999-9999</p>
+            <div class="contatos-footer">
+                <h3>Contatos</h3>
+                <p>
+                    <a href="https://wa.me/5587991657703" target="_blank">
+                        <i class="fab fa-whatsapp"></i>
+                        (87) 99165-7703
+                    </a>
+                </p>
+                <p>
+                    <a href="https://instagram.com/laticinio_esperanca232" target="_blank"> <i
+                            class="fab fa-instagram"></i>
+                        @laticinio_esperanca232
+                    </a>
+                </p>
             </div>
-            <div class="footer-section">
-                <h3>Endereço</h3>
-                <p>Rua Principal, 123, Centro</p>
-                <p>Alpinópolis, MG</p>
+            <div class="localizacao">
+                <h3>Localização</h3>
+                <p>Rua: Manoel Batista 322</p>
+                <p>Bairro: Santa Clara</p>
+                <p>Cidade: Sanharó-PE</p>
+            </div>
+            <div class="links-footer">
+                <h3>Navegação</h3>
+                <ul>
+                    <li><a href="index.html">Início</a></li>
+                    <li><a href="produtos.html">Produtos</a></li>
+                    <li><a href="login.html">Login</a></li>
+                </ul>
             </div>
         </div>
         <div class="copyright">
             <p>&copy; <span id="anoAtual"></span> Laticínio Esperança. Todos os direitos reservados.</p>
+            <p>Projeto de Faculdade - Desenvolvimento Web</p>
         </div>
     </footer>
 
@@ -96,17 +116,23 @@
                     const orderTotal = parseFloat(order.total).toFixed(2);
 
                     let itensHtml = '';
-                    order.itens.forEach(item => {
-                        itensHtml += `
-                            <div class="pedido-item-produto">
-                                <img src="php/produtos_api.php?get_image=true&id=${item.produto_id}" alt="${item.nome_produto}" class="produto-imagem-pedido">
-                                <div class="produto-detalhes">
-                                    <strong>${item.nome_produto}</strong>
-                                    <span>Quantidade: ${item.quantidade} | Preço Un.: R$ ${parseFloat(item.preco_unitario).toFixed(2)}</span>
+                    
+                    // --- INÍCIO DA CORREÇÃO ---
+                    // Adicionada verificação para garantir que 'order.itens' existe e é um array antes de iterar
+                    if (order.itens && Array.isArray(order.itens)) {
+                        order.itens.forEach(item => {
+                            itensHtml += `
+                                <div class="pedido-item-produto">
+                                    <img src="php/produtos_api.php?get_image=true&id=${item.produto_id}" alt="${item.produto_nome}" class="produto-imagem-pedido">
+                                    <div class="produto-detalhes">
+                                        <strong>${item.produto_nome}</strong>
+                                        <span>Quantidade: ${item.quantidade} | Preço Un.: R$ ${parseFloat(item.preco_unitario).toFixed(2)}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        `;
-                    });
+                            `;
+                        });
+                    }
+                    // --- FIM DA CORREÇÃO ---
 
                     const orderDiv = document.createElement('div');
                     orderDiv.classList.add('pedido-item');

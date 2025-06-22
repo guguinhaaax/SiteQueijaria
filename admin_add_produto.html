@@ -176,15 +176,24 @@
 
         cancelEditBtn.addEventListener('click', resetAddProductForm);
 
-        document.getElementById('addProdutoForm').addEventListener('submit', async function(event) {
+            document.getElementById('addProdutoForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             const formData = new FormData(this);
+            const editId = document.getElementById('edit-id').value;
+
+            // Se o campo 'edit-id' tiver um valor, significa que é uma edição.
+            // Adicionamos o campo _method para que o PHP trate como PUT.
+            if (editId) {
+                formData.append('_method', 'PUT');
+            }
             
             try {
+                // A requisição continua sendo 'POST', mas o backend a interpretará como 'PUT'
                 const response = await fetch('php/produtos_api.php', {
-                    method: 'POST',
+                    method: 'POST', 
                     body: formData
                 });
+
                 const data = await response.json();
                 if (response.ok) {
                     showNotification(data.message, 'success');

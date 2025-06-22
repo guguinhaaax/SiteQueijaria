@@ -65,24 +65,30 @@
     </main>
 
     <script src="js/main.js"></script>
+    <script src="js/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const userAuth = JSON.parse(localStorage.getItem('userAuth'));
-    
-    if (!userAuth || !userAuth.isAuthenticated) {
-        showNotification('Você precisa estar logado para finalizar a compra.', 'error');
-        setTimeout(() => {
-            window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
-        }, 1500);
-        return;
-    }
-            // Verificação de login atualizada
-        const authStatus = JSON.parse(localStorage.getItem('userAuth'));
-        if (!authStatus || !authStatus.isAuthenticated) {
-            showNotification('Você precisa estar logado para acessar o carrinho.', 'error');
-            setTimeout(() => { window.location.href = 'login.html'; }, 1500);
-            return;
-        }
+            // Primeiro, verifica o status de autenticação com o servidor
+            fetch('php/auth_status.php')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.isAuthenticated) {
+                        // Se o usuário está autenticado no servidor, renderiza o carrinho.
+                        initializeCart();
+                    } else {
+                        // Se não estiver, exibe notificação e redireciona para o login.
+                        showNotification('Você precisa estar logado para acessar o carrinho.', 'error');
+                        localStorage.removeItem('userAuth'); // Limpa o auth local
+                        setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+                    }
+                })
+                .catch(() => {
+                    showNotification('Erro de comunicação. Redirecionando para o login.', 'error');
+                    setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+                });
+        });
+
+        function initializeCart() {
             // Referências aos elementos do DOM
             const carrinhoItensContainer = document.getElementById('carrinho-itens-container');
             const carrinhoResumoContainer = document.getElementById('carrinho-resumo-container');
@@ -112,23 +118,22 @@
                         const itemDiv = document.createElement('div');
                         itemDiv.classList.add('carrinho-item');
                         itemDiv.innerHTML = `
-                    <img src="${imageUrl}" alt="${item.nome}" class="item-image">
-                    <div class="item-details">
-                        <span class="item-name">${item.nome}</span>
-                        <span class="item-price">R$ ${parseFloat(item.preco).toFixed(2)}</span>
-                    </div>
-                    <div class="item-controls">
-                        <input type="number" value="${item.quantidade}" min="1" max="${item.estoque_disponivel}" data-id="${item.id}" class="quantidade-input">
-                        <span class="item-subtotal">R$ ${itemTotal.toFixed(2)}</span>
-                        <button class="remover-item" data-id="${item.id}" title="Remover item"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                `;
+                            <img src="${imageUrl}" alt="${item.nome}" class="item-image">
+                            <div class="item-details">
+                                <span class="item-name">${item.nome}</span>
+                                <span class="item-price">R$ ${parseFloat(item.preco).toFixed(2)}</span>
+                            </div>
+                            <div class="item-controls">
+                                <input type="number" value="${item.quantidade}" min="1" max="${item.estoque_disponivel}" data-id="${item.id}" class="quantidade-input">
+                                <span class="item-subtotal">R$ ${itemTotal.toFixed(2)}</span>
+                                <button class="remover-item" data-id="${item.id}" title="Remover item"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        `;
                         carrinhoItensContainer.appendChild(itemDiv);
                     });
                 }
 
                 carrinhoTotalSpan.textContent = total.toFixed(2);
-                // A função updateCartCount() deve estar no seu arquivo 'js/main.js' para atualizar o contador no header
                 if (typeof updateCartCount === 'function') {
                     updateCartCount();
                 }
@@ -144,7 +149,6 @@
                     let finalQuantity = parseInt(newQuantity);
 
                     if (finalQuantity > maxAllowed) {
-                        // A função showNotification() deve estar no seu arquivo 'js/main.js'
                         showNotification(`Quantidade máxima para ${carrinho[itemIndex].nome} é ${maxAllowed}.`, 'error');
                         finalQuantity = maxAllowed;
                     } else if (finalQuantity < 1) {
@@ -153,13 +157,11 @@
 
                     carrinho[itemIndex].quantidade = finalQuantity;
                     localStorage.setItem('carrinho', JSON.stringify(carrinho));
-                    renderCart(); // Re-renderiza o carrinho para atualizar totais e valores
+                    renderCart();
                 }
             }
 
             // --- EVENT LISTENERS ---
-
-            // Listener para mudança na quantidade do input
             carrinhoItensContainer.addEventListener('change', function (event) {
                 if (event.target.classList.contains('quantidade-input')) {
                     const productId = event.target.dataset.id;
@@ -168,7 +170,6 @@
                 }
             });
 
-            // Listener para clique no botão de remover item
             carrinhoItensContainer.addEventListener('click', function (event) {
                 const removerBtn = event.target.closest('.remover-item');
                 if (removerBtn) {
@@ -177,21 +178,11 @@
                     localStorage.setItem('carrinho', JSON.stringify(carrinho));
                     showNotification('Item removido do carrinho.', 'success');
                     renderCart();
-                    // Dispara um evento para que o header (em main.js) possa atualizar o contador
                     document.dispatchEvent(new CustomEvent('cartUpdated'));
                 }
             });
 
-            // Listener do botão de finalizar pedido (com a correção do usuario_id)
             finalizarPedidoBtn.addEventListener('click', async function () {
-                const userAuth = JSON.parse(localStorage.getItem('userAuth'));
-
-if (!userAuth || !userAuth.isAuthenticated || !userAuth.id) {
-    showNotification('Você precisa estar logado para finalizar um pedido.', 'error');
-    setTimeout(() => { window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href); }, 1500);
-    return;
-}
-
                 if (carrinho.length === 0) {
                     showNotification('Seu carrinho está vazio.', 'error');
                     return;
@@ -204,7 +195,7 @@ if (!userAuth || !userAuth.isAuthenticated || !userAuth.id) {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            usuario_id: userAuth.id,
+                            // Não é necessário enviar o usuario_id, o backend usa a sessão
                             carrinho: carrinho.map(item => ({ produto_id: item.id, quantidade: item.quantidade })),
                             tipo_entrega: tipoEntrega
                         })
@@ -232,7 +223,7 @@ if (!userAuth || !userAuth.isAuthenticated || !userAuth.id) {
             // Renderização inicial e listener para atualizações externas
             renderCart();
             document.addEventListener('cartUpdated', renderCart);
-        });
+        }
     </script>
 </body>
 
