@@ -9,15 +9,14 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
     case 'GET':
-        // RF05: O sistema deve permitir ao administrador visualizar relatórios de faturamento.
-        // Permite listar todos os pedidos (admin) ou pedidos do usuário logado (cliente)
+        // Permite listar todos os pedidos
         if (isAdmin()) {
             if (isset($_GET['faturamento'])) {
-                // RF05: Relatório de faturamento
+                // Relatório de faturamento
                 $stmt = $pdo->query("SELECT DATE(data_pedido) as data, SUM(total) as faturamento_diario FROM pedidos WHERE status = 'concluido' GROUP BY DATE(data_pedido) ORDER BY data DESC");
                 echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
             } else if (isset($_GET['id'])) {
-                // Busca um pedido específico com seus itens (para admin ver detalhes)
+                // Busca um pedido específico com seus itens 
                 $pedido_id = $_GET['id'];
                 $stmt_pedido = $pdo->prepare("SELECT p.*, u.nome as cliente_nome FROM pedidos p JOIN usuarios u ON p.usuario_id = u.id WHERE p.id = ?");
                 $stmt_pedido->execute([$pedido_id]);
@@ -33,16 +32,12 @@ switch ($method) {
                     echo json_encode(['message' => 'Pedido não encontrado.']);
                 }
             } else {
-                // --- INÍCIO DA CORREÇÃO ---
-                // O bloco anterior foi substituído para garantir que os itens sejam incluídos
-                // na lista de todos os pedidos para o administrador.
-                
-                // Lista todos os pedidos (PARA O ADMIN) com seus itens
+                // Lista todos os pedidos com seus itens
                 $stmt_pedidos = $pdo->query("SELECT p.*, u.nome as cliente_nome FROM pedidos p JOIN usuarios u ON p.usuario_id = u.id ORDER BY data_pedido DESC");
                 $pedidos = $stmt_pedidos->fetchAll(PDO::FETCH_ASSOC);
 
                 // Para cada pedido, busca e anexa os seus itens
-                foreach ($pedidos as &$pedido) { // O "&" é importante para modificar o array original
+                foreach ($pedidos as &$pedido) { 
                     $stmt_itens = $pdo->prepare("
                         SELECT ip.*, pr.nome as produto_nome 
                         FROM itens_pedido ip 
@@ -53,12 +48,10 @@ switch ($method) {
                     $pedido['itens'] = $stmt_itens->fetchAll(PDO::FETCH_ASSOC);
                 }
                 
-                // Agora a resposta para o admin terá a mesma estrutura da resposta para o cliente
                 echo json_encode($pedidos);
-                // --- FIM DA CORREÇÃO ---
             }
         } else if (isAuthenticated()) {
-            // Cliente vê apenas seus próprios pedidos COM OS ITENS INCLUSOS (esta parte já estava correta)
+            // Cliente vê seus próprios pedidos
             try {
                 // Busca os pedidos do usuário
                 $stmt_pedidos = $pdo->prepare("SELECT * FROM pedidos WHERE usuario_id = ? ORDER BY data_pedido DESC");
@@ -87,14 +80,9 @@ switch ($method) {
             echo json_encode(['message' => 'Não autorizado. Faça login para ver seus pedidos.']);
         }
         break;
-
-    // O restante do arquivo (case 'POST', case 'PUT', etc.) permanece o mesmo
-    // ...
-    // ... (cole o restante do seu código PHP aqui) ...
-    // ...
     case 'POST':
-        // RF03: O cliente deve poder adicionar produtos ao carrinho e realizar pedidos.
-        // RF04: O sistema deve permitir ao cliente selecionar entre retirada no local ou entrega.
+        // Adicionar produtos e realizar pedidos.
+        // Varíavel tipo_entrega existe, porém só existe um tipo de entrega no momento (retirada local)
         if (!isAuthenticated()) {
             http_response_code(401);
             echo json_encode(['message' => 'Não autorizado. Faça login para realizar um pedido.']);
@@ -102,7 +90,7 @@ switch ($method) {
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
-        $carrinho = $data['carrinho'] ?? []; // Array de {produto_id, quantidade}
+        $carrinho = $data['carrinho'] ?? [];
         
         $tipo_entrega = $data['tipo_entrega'] ?? '';
 
@@ -112,9 +100,9 @@ switch ($method) {
             exit();
         }
         
-        if (!in_array($tipo_entrega, ['retirada', 'mototaxi'])) {
+        if (!in_array($tipo_entrega, ['retirada'])) {
             http_response_code(400);
-            echo json_encode(['message' => "Tipo de entrega inválido. Valores permitidos: 'retirada', 'mototaxi'."]);
+            echo json_encode(['message' => "Tipo de entrega inválido. Valores permitidos: 'retirada'."]);
             exit();
         }
 
@@ -178,7 +166,7 @@ switch ($method) {
         break;
 
     case 'PUT':
-        // Permitir que o administrador mude o status do pedido
+        // Permite que o administrador mude o status do pedido
         if (!isAdmin()) {
             http_response_code(403);
             echo json_encode(['message' => 'Acesso negado. Apenas administradores podem atualizar pedidos.']);

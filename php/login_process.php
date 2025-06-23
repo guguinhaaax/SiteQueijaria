@@ -7,6 +7,7 @@ $data = json_decode(file_get_contents('php://input'), true);
 $email = $data['email'] ?? '';
 $senha = $data['senha'] ?? '';
 
+// Endpoint de API de autenticação
 if (loginUser($email, $senha, $pdo)) {
     // Obter dados completos do usuário
     $stmt = $pdo->prepare("SELECT id, nome, is_admin FROM usuarios WHERE email = ?");

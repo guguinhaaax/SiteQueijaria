@@ -78,6 +78,7 @@
 
     <script src="js/main.js"></script>
     <script>
+         // Faz uma requisição do arquivo php para saber se o usuário é admin
         async function checkAdmin() {
             try {
                 const response = await fetch('php/check_admin.php');

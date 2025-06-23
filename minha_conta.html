@@ -95,6 +95,8 @@
 
     <script src="js/main.js"></script>
     <script>
+
+        // Faz requisição em meus na API restful de pedidos e carrega os pedidos dos clientes na página
         async function loadUserOrders() {
             const listaPedidosDiv = document.getElementById('meus-pedidos-lista');
             try {
@@ -111,14 +113,14 @@
                     return;
                 }
 
+
                 orders.forEach(order => {
                     const orderDate = new Date(order.data_pedido).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     const orderTotal = parseFloat(order.total).toFixed(2);
 
                     let itensHtml = '';
                     
-                    // --- INÍCIO DA CORREÇÃO ---
-                    // Adicionada verificação para garantir que 'order.itens' existe e é um array antes de iterar
+                    // Para cada item cria uma div contendo imagem, nome e quantidade do produto
                     if (order.itens && Array.isArray(order.itens)) {
                         order.itens.forEach(item => {
                             itensHtml += `
@@ -132,8 +134,8 @@
                             `;
                         });
                     }
-                    // --- FIM DA CORREÇÃO ---
 
+                    // Cria div com id, data, status e valor total do pedido
                     const orderDiv = document.createElement('div');
                     orderDiv.classList.add('pedido-item');
                     orderDiv.innerHTML = `
@@ -157,6 +159,7 @@
             }
         }
 
+        // Verifica se o usuário está autenticado
         document.addEventListener('DOMContentLoaded', () => {
             fetch('php/auth_status.php')
                 .then(res => res.json())

@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Pega os elementos do DOM a serem utilizados quando carregam o conteúdo
     const navLogin = document.getElementById('nav-login');
     const navCadastro = document.getElementById('nav-cadastro');
     const navConta = document.getElementById('nav-conta');
@@ -30,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
+    // Função de atualizar o carrinho
     function updateCartCount() {
         let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
         const totalItems = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
@@ -43,12 +45,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Checa o status de autenticação
     async function checkAuthStatus() {
-        console.log('Verificando auth status...', {
+    console.log('Verificando auth status...', {
     localStorage: localStorage.getItem('userAuth'),
     session: await (await fetch('php/auth_status.php')).json()
 });
     try {
+        // Requisição no auth_status
         const response = await fetch('php/auth_status.php');
         const serverAuth = await response.json();
         
@@ -68,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Atualiza a UI
             updateAuthUI(true, serverAuth.is_admin);
         } else {
-            // Mantém os dados locais se houver, mas marca como não autenticado
+            // Mantém os dados locais se houver mas marca como não autenticado
             if (localAuth.isAuthenticated) {
                 localStorage.setItem('userAuth', JSON.stringify({
                     ...localAuth,
@@ -79,12 +83,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     } catch (error) {
         console.error('Erro ao verificar status:', error);
-        // Fallback para localStorage
+        // Se o local storage não estiver disponível
         const localAuth = JSON.parse(localStorage.getItem('userAuth')) || {};
         updateAuthUI(localAuth.isAuthenticated, localAuth.isAdmin);
     }
 }
 
+// Funcionalidades que o usuário não visualiza se ele estiver autenticado ou não e se ele for admin ou não
 function updateAuthUI(isAuthenticated, isAdmin) {
     if (isAuthenticated) {
         if(navLogin) navLogin.style.display = 'none';
@@ -102,6 +107,7 @@ function updateAuthUI(isAuthenticated, isAdmin) {
     }
 }
 
+    // Verifica se o usuário clicou no botão de fazer logout
     if (navLogout) {
         navLogout.addEventListener('click', async function(event) {
             event.preventDefault();
@@ -124,6 +130,7 @@ function updateAuthUI(isAuthenticated, isAdmin) {
         });
     }
 
+    // Função que atualiza com o ano atual
     const anoAtualSpan = document.getElementById('anoAtual');
     if (anoAtualSpan) {
         anoAtualSpan.textContent = new Date().getFullYear();

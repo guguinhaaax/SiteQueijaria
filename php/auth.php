@@ -5,17 +5,22 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once 'conexao.php';
 
+// Registra o usuário
 function registerUser($nome, $email, $senha, $pdo) {
+    // Usando bcrypt para fazer criptografia da senha
     $hashed_password = password_hash($senha, PASSWORD_BCRYPT);
     try {
+        //Inserção no banco de dados
         $stmt = $pdo->prepare("INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)");
         $stmt->execute([$nome, $email, $hashed_password]);
         return true;
+    //Tratamento de erros
     } catch (PDOException $e) {
         return false;
     }
 }
 
+// Login do usuário com consulta no BD para verificação de senha
 function loginUser($email, $senha, $pdo) {
     $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE email = ?");
     $stmt->execute([$email]);
@@ -30,10 +35,12 @@ function loginUser($email, $senha, $pdo) {
     return false;
 }
 
+// Limpando variáveis de sessão e destroindo dados associados a sessão atual
 function logoutUser() {
     session_unset();
     session_destroy();
 }
+
 
 function isAdmin() {
     return isset($_SESSION['is_admin']) && $_SESSION['is_admin'];

@@ -75,10 +75,12 @@
 
     <script src="js/main.js"></script>
     <script>
+        // Referências aos elementos do DOM
         const formTitle = document.getElementById('form-title');
         const submitBtn = document.getElementById('submit-btn');
         const cancelEditBtn = document.getElementById('cancel-edit-btn');
 
+        // Faz uma requisição do arquivo php para saber se o usuário é admin
         async function checkAdmin() {
             const response = await fetch('php/check_admin.php');
             const data = await response.json();
@@ -88,6 +90,7 @@
             }
         }
 
+        // Faz uma requisição na API restful e cria a div com os itens e seus atributos
         async function loadProductsAdmin() {
             try {
                 const response = await fetch('php/produtos_api.php');
@@ -166,6 +169,7 @@
             }
         }
 
+        // Limpa formulário
         function resetAddProductForm() {
             document.getElementById('addProdutoForm').reset();
             document.getElementById('edit-id').value = '';
@@ -182,13 +186,11 @@
             const editId = document.getElementById('edit-id').value;
 
             // Se o campo 'edit-id' tiver um valor, significa que é uma edição.
-            // Adicionamos o campo _method para que o PHP trate como PUT.
             if (editId) {
                 formData.append('_method', 'PUT');
             }
             
             try {
-                // A requisição continua sendo 'POST', mas o backend a interpretará como 'PUT'
                 const response = await fetch('php/produtos_api.php', {
                     method: 'POST', 
                     body: formData

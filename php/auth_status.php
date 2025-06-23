@@ -4,6 +4,7 @@ require_once 'auth.php';
 
 header('Content-Type: application/json');
 
+// Check de status do usuário se ele está autenticado e se é admin
 $response = [
     'isAuthenticated' => isAuthenticated(),
     'isAdmin' => isAdmin()

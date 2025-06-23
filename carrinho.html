@@ -68,17 +68,17 @@
     <script src="js/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Primeiro, verifica o status de autenticação com o servidor
+            // verifica o status de autenticação com o servidor
             fetch('php/auth_status.php')
                 .then(res => res.json())
                 .then(data => {
                     if (data.isAuthenticated) {
-                        // Se o usuário está autenticado no servidor, renderiza o carrinho.
+                        // Se o usuário está autenticado no servidor inicializa o carrinho
                         initializeCart();
                     } else {
-                        // Se não estiver, exibe notificação e redireciona para o login.
+                        // Se não estiver exibe notificação e redireciona para o login.
                         showNotification('Você precisa estar logado para acessar o carrinho.', 'error');
-                        localStorage.removeItem('userAuth'); // Limpa o auth local
+                        localStorage.removeItem('userAuth');
                         setTimeout(() => { window.location.href = 'login.html'; }, 2000);
                     }
                 })
@@ -97,19 +97,17 @@
 
             // Carrega o carrinho do localStorage
             let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
-
-            /**
-             * Renderiza (desenha) os itens do carrinho na tela.
-             */
+            
+            // Mostra os itens do carrinho na tela
             function renderCart() {
-                carrinhoItensContainer.innerHTML = ''; // Limpa a lista atual de itens
+                carrinhoItensContainer.innerHTML = '';
                 let total = 0;
 
                 if (carrinho.length === 0) {
                     carrinhoItensContainer.innerHTML = '<p class="carrinho-vazio">Seu carrinho está vazio.</p>';
-                    carrinhoResumoContainer.style.display = 'none'; // Esconde o resumo e o botão de finalizar
+                    carrinhoResumoContainer.style.display = 'none'; 
                 } else {
-                    carrinhoResumoContainer.style.display = 'block'; // Mostra o resumo
+                    carrinhoResumoContainer.style.display = 'block'; 
                     carrinho.forEach(item => {
                         const itemTotal = item.preco * item.quantidade;
                         total += itemTotal;
@@ -139,9 +137,7 @@
                 }
             }
 
-            /**
-             * Atualiza a quantidade de um item no carrinho.
-             */
+            // Atualiza a quantidade de itens no carrinho
             function updateCartItem(productId, newQuantity) {
                 const itemIndex = carrinho.findIndex(item => item.id == productId);
                 if (itemIndex > -1) {
@@ -161,7 +157,7 @@
                 }
             }
 
-            // --- EVENT LISTENERS ---
+            // Evento que escuta a mudança de quantidade de itens do carrinho
             carrinhoItensContainer.addEventListener('change', function (event) {
                 if (event.target.classList.contains('quantidade-input')) {
                     const productId = event.target.dataset.id;
@@ -169,7 +165,8 @@
                     updateCartItem(productId, newQuantity);
                 }
             });
-
+            
+            // Evento que escuta o click no button de remover e remove o item do carrinho
             carrinhoItensContainer.addEventListener('click', function (event) {
                 const removerBtn = event.target.closest('.remover-item');
                 if (removerBtn) {
@@ -182,6 +179,7 @@
                 }
             });
 
+            // Não permite carrinho vazio fazer compra
             finalizarPedidoBtn.addEventListener('click', async function () {
                 if (carrinho.length === 0) {
                     showNotification('Seu carrinho está vazio.', 'error');
@@ -195,7 +193,6 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            // Não é necessário enviar o usuario_id, o backend usa a sessão
                             carrinho: carrinho.map(item => ({ produto_id: item.id, quantidade: item.quantidade })),
                             tipo_entrega: tipoEntrega
                         })

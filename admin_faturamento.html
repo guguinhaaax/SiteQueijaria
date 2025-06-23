@@ -54,6 +54,7 @@
 
     <script src="js/main.js"></script>
     <script>
+        // Faz uma requisição do arquivo php para saber se o usuário é admin
         async function checkAdmin() {
             const response = await fetch('php/check_admin.php');
             const data = await response.json();
@@ -63,6 +64,7 @@
             }
         }
 
+        // Faz uma requisição na API restful para carregar os pedidos faturados
         async function loadFaturamento() {
             try {
                 const response = await fetch('php/pedidos_api.php?faturamento=true');
@@ -86,6 +88,7 @@
             }
         }
 
+        // Faz uma requisição na API restful para carregar todos os pedidos com seus status, se estão para serem feitos ou não
         async function loadAllOrders() {
             try {
                 const response = await fetch('php/pedidos_api.php');

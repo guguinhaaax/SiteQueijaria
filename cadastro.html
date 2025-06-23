@@ -130,6 +130,8 @@
 
     <script src="js/main.js"></script>
     <script>
+
+        // Ao enviar um forms ele guardará o valor de nome, email e senha
         document.getElementById('cadastroForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             const nome = document.getElementById('nome').value;
@@ -137,6 +139,7 @@
             const senha = document.getElementById('senha').value;
 
             try {
+                // Com esses valores ele irá guardar essas strings em formato JSON
                 const response = await fetch('php/register_process.php', { 
                     method: 'POST',
                     headers: {
@@ -145,6 +148,7 @@
                     body: JSON.stringify({ nome, email, senha })
                 });
                 const data = await response.json();
+                // Depois do registro já redireciona para o login
                 if (response.ok) {
                     alert(data.message);
                     window.location.href = 'login.html';

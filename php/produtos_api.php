@@ -3,9 +3,6 @@ session_start();
 require_once 'conexao.php';
 require_once 'auth.php';
 
-// O header 'Content-Type: application/json' é definido dentro dos cases
-// para permitir que o script também sirva imagens diretamente.
-
 $method = $_SERVER['REQUEST_METHOD'];
 
 // Para lidar com atualizações enviadas via formulário POST com um campo de método específico
@@ -16,31 +13,28 @@ if ($method === 'POST' && isset($_POST['_method']) && strtoupper($_POST['_method
 switch ($method) {
     case 'GET':
         header('Content-Type: application/json');
-        // RF02: O sistema deve exibir a lista de produtos disponíveis para o cliente com seus respectivos detalhes.
+        // Exibe a lista de produtos disponíveis para o cliente com preço quantidade, nome do produto e imagem
         if (isset($_GET['id'])) {
             $id = $_GET['id'];
             
-            // Se a requisição for para buscar a imagem
             if (isset($_GET['get_image']) && $_GET['get_image'] == 'true') {
                 $stmt_img = $pdo->prepare("SELECT imagem FROM produtos WHERE id = ?");
                 $stmt_img->execute([$id]);
                 $imageData = $stmt_img->fetch(PDO::FETCH_ASSOC);
 
+
                 if ($imageData && !empty($imageData['imagem'])) {
-                    // ATENÇÃO: Como não há 'imagem_tipo' no banco, o tipo não pode ser definido dinamicamente.
-                    // O navegador pode tentar fazer o download em vez de exibir.
-                    // A melhor solução é adicionar uma coluna 'imagem_tipo' (ex: VARCHAR(50)) na sua tabela.
-                    header("Content-Type: image/png"); // Definindo um tipo padrão, idealmente isso viria do banco.
+                    header("Content-Type: image/png"); // Define um tipo padrão de imagem
                     echo $imageData['imagem'];
                 } else {
-                    // Servir uma imagem placeholder caso o produto não tenha imagem ou não exista
+                    // Será exibido apenas o nome do produto se ele não tiver imagem
                     header("Content-Type: image/png");
-                    readfile("img/placeholder.png"); // Certifique-se que este arquivo existe
+                    readfile("img/placeholder.png");
                 }
                 exit();
 
             } else {
-                // Busca os detalhes do produto (sem a imagem para não sobrecarregar o JSON)
+                // Busca os detalhes do produto sem a imagem
                 $stmt = $pdo->prepare("SELECT id, nome, preco, estoque FROM produtos WHERE id = ?");
                 $stmt->execute([$id]);
                 $product = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -53,13 +47,13 @@ switch ($method) {
                 }
             }
         } else {
-            // Lista todos os produtos (sem a imagem)
+            // Lista todos os produtos sem imagem
             $stmt = $pdo->query("SELECT id, nome, preco, estoque FROM produtos");
             echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
         }
         break;
 
-    case 'POST': // Usado para CRIAR um novo produto
+    case 'POST': // Criar um novo produto
         header('Content-Type: application/json');
         if (!isAdmin()) {
             http_response_code(403);
@@ -72,6 +66,7 @@ switch ($method) {
         $estoque = $_POST['estoque'] ?? 0;
         $imagem = null;
 
+        // Campos não podem ser vazios
         if (empty($nome) || empty($preco)) {
             http_response_code(400);
             echo json_encode(['message' => 'Nome e preço são obrigatórios.']);
@@ -79,7 +74,7 @@ switch ($method) {
         }
 
         if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] == UPLOAD_ERR_OK) {
-            // Validação do tipo de arquivo (MIME type)
+            // Valida o tipo de arquivo
             $finfo = new finfo(FILEINFO_MIME_TYPE);
             $mime_type = $finfo->file($_FILES['imagem']['tmp_name']);
             if (!in_array($mime_type, ['image/jpeg', 'image/png', 'image/gif'])) {
@@ -88,7 +83,7 @@ switch ($method) {
                 exit();
             }
 
-            // Validação do tamanho do arquivo (MEDIUMBLOB suporta até 16MB)
+            // Valida o tamanho do arquivo ele só pode ser 16mb por conta do tipo MEDIUMBLOB
             if ($_FILES['imagem']['size'] > 16 * 1024 * 1024) {
                  http_response_code(400);
                  echo json_encode(['message' => 'Imagem muito grande. Máximo 16MB.']);
@@ -112,17 +107,13 @@ switch ($method) {
         }
         break;
 
-    case 'PUT': // Usado para ATUALIZAR um produto existente
+    case 'PUT': // Usado para atualizar um produto existente
         header('Content-Type: application/json');
         if (!isAdmin()) {
             http_response_code(403);
             echo json_encode(['message' => 'Acesso negado. Apenas administradores podem editar produtos.']);
             exit();
         }
-
-        // Dados de um PUT com 'multipart/form-data' não estão em $_POST.
-        // É por isso que o formulário HTML deve enviar um POST com um campo <input type="hidden" name="_method" value="PUT">.
-        // O código no topo do script já trata isso.
         
         $id = $_POST['id'] ?? 0;
         $nome = $_POST['nome'] ?? '';
