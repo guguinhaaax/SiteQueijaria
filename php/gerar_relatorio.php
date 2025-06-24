@@ -18,6 +18,7 @@ try {
     $filename = "relatorio_pedidos_" . date('Y-m-d') . ".txt";
 
     // Prepara o cabeçalho do arquivo de texto
+    $fileContent = "";
     $fileContent .= "     Relatório de Pedidos - Laticínio Esperança\n";
     $fileContent .= "Gerado em: " . date('d/m/Y H:i:s') . "\n\n";
 
