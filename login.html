@@ -16,6 +16,7 @@
 </head>
 
 <body>
+    <div id="notification-container"></div>
     <div class="top-bar-info">
         <div class="container">
             <span>Laticínio Esperança</span>
@@ -147,21 +148,17 @@
             }));
             
             // Força a atualização imediata da UI
-            if (typeof checkAuthStatus === 'function') {
-                await checkAuthStatus();
+            // A função checkAuthStatus já é chamada no main.js, mas podemos chamar de novo
+            // para garantir a atualização visual antes do redirect.
+            if (typeof updateAuthUI === 'function') {
+                 updateAuthUI(true, data.is_admin);
             }
             
             showNotification('Login realizado com sucesso!');
             setTimeout(() => {
                 window.location.href = 'index.html';
-            }, 1500);
-            console.log('Dados do login:', {
-                isAuthenticated: true,
-                id: data.user_id,
-                email: email,
-                name: data.user_name,
-                isAdmin: data.is_admin
-});
+            }, 1500); // Aguarda a notificação ser vista antes de redirecionar
+
         } else {
             showNotification(data.message || 'Email ou senha inválidos.', 'error');
         }

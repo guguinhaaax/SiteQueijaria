@@ -190,7 +190,7 @@ switch ($method) {
             echo json_encode(['message' => 'Produto excluído com sucesso!']);
         } catch (PDOException $e) {
             http_response_code(500);
-            echo json_encode(['message' => 'Erro ao excluir produto: ' . $e->getMessage()]);
+            echo json_encode(['message' => 'O produto está em um pedido.']);
         }
         break;
 
