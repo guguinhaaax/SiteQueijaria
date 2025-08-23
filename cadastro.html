@@ -17,6 +17,7 @@
 </head>
 
 <body>
+    <div id="notification-container"></div>
     <div class="top-bar-info">
         <div class="container">
             <span>Laticínio Esperança</span>
@@ -150,14 +151,16 @@
                 const data = await response.json();
                 // Depois do registro já redireciona para o login
                 if (response.ok) {
-                    alert(data.message);
+                    showNotification(data.message, 'success');
+                    setTimeout(() => {
                     window.location.href = 'login.html';
+                    }, 2000);
                 } else {
-                    alert(data.message);
+                    showNotification(data.message, 'error');
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                alert('Ocorreu um erro ao tentar cadastrar.');
+                showNotification(`Ocorreu um erro ao tentar cadastrar.`, 'error');
             }
         });
     </script>
