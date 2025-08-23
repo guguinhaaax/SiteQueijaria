@@ -13,6 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div id="notification-container"></div>
     <div class="top-bar-info">
         <div class="container">
             <span>Laticínio Esperança</span>
@@ -140,9 +141,9 @@
                             if (existingItemIndex > -1) {
                                 if (carrinho[existingItemIndex].quantidade < productStock) {
                                     carrinho[existingItemIndex].quantidade++;
-                                    alert(`${productName} adicionado ao carrinho. Quantidade atual: ${carrinho[existingItemIndex].quantidade}`);
+                                    showNotification(`${productName} adicionado ao carrinho. Quantidade atual: ${carrinho[existingItemIndex].quantidade}`, 'success');
                                 } else {
-                                    alert(`Não há mais ${productName} em estoque para adicionar.`);
+                                    showNotification(`Não há mais ${productName} em estoque para adicionar.`, 'error');
                                 }
                             } else {
                                 if (productStock > 0) {
@@ -153,9 +154,9 @@
                                         quantidade: 1,
                                         estoque_disponivel: productStock
                                     });
-                                    alert(`${productName} adicionado ao carrinho.`);
+                                    showNotification(`${productName} adicionado ao carrinho.`, 'success');
                                 } else {
-                                    alert(`${productName} está fora de estoque.`);
+                                    showNotification(`${productName} está fora de estoque.`, 'error');
                                 }
                             }
                             localStorage.setItem('carrinho', JSON.stringify(carrinho));

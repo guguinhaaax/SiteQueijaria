@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,8 +11,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="shortcut icon" href="ico/favicon.ico" type="image/x-icon">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
     <div id="notification-container"></div>
     <div class="top-bar-info">
@@ -28,7 +32,8 @@
     <header class="main-header-content">
         <div class="container logo-container">
             <a href="index.html" class="logo-link">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGeuHdGJbjRIyDGpJehNFmZX9dJ3Sy1CCEWg&s" alt="Logo Laticínio Esperança" class="main-logo-img">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGeuHdGJbjRIyDGpJehNFmZX9dJ3Sy1CCEWg&s"
+                    alt="Logo Laticínio Esperança" class="main-logo-img">
             </a>
             <h1>Gerenciamento de Produtos</h1>
         </div>
@@ -61,7 +66,8 @@
                 </div>
                 <div class="form-buttons">
                     <button type="submit" class="btn-cta" id="submit-btn">Adicionar Produto</button>
-                    <button type="button" class="btn-secondary" id="cancel-edit-btn" style="display: none;">Cancelar Edição</button>
+                    <button type="button" class="btn-secondary" id="cancel-edit-btn" style="display: none;">Cancelar
+                        Edição</button>
                 </div>
             </form>
         </div>
@@ -79,6 +85,53 @@
         const formTitle = document.getElementById('form-title');
         const submitBtn = document.getElementById('submit-btn');
         const cancelEditBtn = document.getElementById('cancel-edit-btn');
+
+        // Função para mostrar o diálogo de confirmação customizado
+        function showCustomConfirm(message, onConfirm) {
+            // Remove qualquer diálogo antigo para evitar duplicatas
+            const existingOverlay = document.querySelector('.confirm-overlay');
+            if (existingOverlay) {
+                existingOverlay.remove();
+            }
+
+            // Cria o overlay (camada de fundo)
+            const overlay = document.createElement('div');
+            overlay.classList.add('confirm-overlay');
+
+            // Cria a caixa de diálogo
+            const dialog = document.createElement('div');
+            dialog.classList.add('confirm-dialog');
+            dialog.innerHTML = `
+        <p>${message}</p>
+        <div class="confirm-buttons">
+            <button class="btn-confirm">Sim, excluir</button>
+            <button class="btn-cancel">Cancelar</button>
+        </div>`;
+
+            // Adiciona a caixa de diálogo dentro do overlay
+            overlay.appendChild(dialog);
+
+            // Adiciona o overlay ao corpo da página
+            document.body.appendChild(overlay);
+
+            const btnConfirm = dialog.querySelector('.btn-confirm');
+            const btnCancel = dialog.querySelector('.btn-cancel');
+
+            const closeDialog = () => overlay.remove();
+
+            btnConfirm.addEventListener('click', () => {
+                onConfirm();
+                closeDialog();
+            });
+            btnCancel.addEventListener('click', closeDialog);
+
+            // Opcional: Fecha o diálogo se o usuário clicar fora da caixa (no overlay)
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay) {
+                    closeDialog();
+                }
+            });
+        }
 
         // Faz uma requisição do arquivo php para saber se o usuário é admin
         async function checkAdmin() {
@@ -104,30 +157,28 @@
                         productItem.classList.add('produto-admin-item');
                         const imageUrl = `php/produtos_api.php?get_image=true&id=${product.id}&t=${new Date().getTime()}`;
                         productItem.innerHTML = `
-                            <img src="${imageUrl}" alt="${product.nome}" class="produto-admin-img">
-                            <div class="produto-admin-info">
-                                <strong>${product.nome}</strong>
-                                <span>R$ ${parseFloat(product.preco).toFixed(2)} | Estoque: ${product.estoque}</span>
-                            </div>
-                            <div class="produto-admin-actions">
-                                <button class="btn-edit-produto" data-id="${product.id}" data-nome="${product.nome}" data-preco="${product.preco}" data-estoque="${product.estoque}">
-                                    <i class="fas fa-edit"></i> Editar
-                                </button>
-                                <button class="btn-delete-produto" data-id="${product.id}">
-                                    <i class="fas fa-trash"></i> Remover
-                                </button>
-                            </div>
-                        `;
+                    <img src="${imageUrl}" alt="${product.nome}" class="produto-admin-img">
+                    <div class="produto-admin-info">
+                        <strong>${product.nome}</strong>
+                        <span>R$ ${parseFloat(product.preco).toFixed(2)} | Estoque: ${product.estoque}</span>
+                    </div>
+                    <div class="produto-admin-actions">
+                        <button class="btn-edit-produto" data-id="${product.id}" data-nome="${product.nome}" data-preco="${product.preco}" data-estoque="${product.estoque}">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn-delete-produto" data-id="${product.id}" data-nome="${product.nome}">
+                            <i class="fas fa-trash"></i> Remover
+                        </button>
+                    </div>`;
                         listaProdutosAdmin.appendChild(productItem);
                     });
 
                     document.querySelectorAll('.btn-edit-produto').forEach(button => {
-                        button.addEventListener('click', function() {
+                        button.addEventListener('click', function () {
                             document.getElementById('edit-id').value = this.dataset.id;
                             document.getElementById('nome-produto').value = this.dataset.nome;
                             document.getElementById('preco-produto').value = this.dataset.preco;
                             document.getElementById('estoque-produto').value = this.dataset.estoque;
-
                             formTitle.textContent = 'Editar Produto';
                             submitBtn.textContent = 'Atualizar Produto';
                             cancelEditBtn.style.display = 'inline-block';
@@ -136,9 +187,11 @@
                     });
 
                     document.querySelectorAll('.btn-delete-produto').forEach(button => {
-                        button.addEventListener('click', async function() {
+                        button.addEventListener('click', function () {
                             const productId = this.dataset.id;
-                            if (confirm('Tem certeza que deseja excluir este produto?')) {
+                            const productName = this.dataset.nome;
+
+                            const deleteAction = async () => {
                                 try {
                                     const response = await fetch('php/produtos_api.php', {
                                         method: 'DELETE',
@@ -157,9 +210,13 @@
                                     console.error('Erro:', error);
                                     showNotification('Ocorreu um erro ao excluir o produto.', 'error');
                                 }
-                            }
+                            };
+
+                            const confirmationMessage = `Tem certeza que deseja excluir o produto <strong>${productName}</strong>?`;
+                            showCustomConfirm(confirmationMessage, deleteAction);
                         });
                     });
+
                 } else {
                     listaProdutosAdmin.innerHTML = '<p>Nenhum produto cadastrado ainda.</p>';
                 }
@@ -180,19 +237,18 @@
 
         cancelEditBtn.addEventListener('click', resetAddProductForm);
 
-            document.getElementById('addProdutoForm').addEventListener('submit', async function(event) {
+        document.getElementById('addProdutoForm').addEventListener('submit', async function (event) {
             event.preventDefault();
             const formData = new FormData(this);
             const editId = document.getElementById('edit-id').value;
 
-            // Se o campo 'edit-id' tiver um valor, significa que é uma edição.
             if (editId) {
                 formData.append('_method', 'PUT');
             }
-            
+
             try {
                 const response = await fetch('php/produtos_api.php', {
-                    method: 'POST', 
+                    method: 'POST',
                     body: formData
                 });
 
@@ -216,4 +272,5 @@
         });
     </script>
 </body>
+
 </html>
