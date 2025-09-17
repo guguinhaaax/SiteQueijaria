@@ -146,6 +146,7 @@
         // Faz uma requisição na API restful e cria a div com os itens e seus atributos
         async function loadProductsAdmin() {
             try {
+                // Agora, a requisição retorna o caminho da imagem
                 const response = await fetch('php/produtos_api.php');
                 const products = await response.json();
                 const listaProdutosAdmin = document.getElementById('lista-produtos-admin');
@@ -155,7 +156,10 @@
                     products.forEach(product => {
                         const productItem = document.createElement('div');
                         productItem.classList.add('produto-admin-item');
-                        const imageUrl = `php/produtos_api.php?get_image=true&id=${product.id}&t=${new Date().getTime()}`;
+                        
+                        // Utiliza o caminho da imagem do banco de dados diretamente
+                        const imageUrl = product.imagem ? product.imagem : 'caminho/para/imagem/padrao.jpg';
+
                         productItem.innerHTML = `
                     <img src="${imageUrl}" alt="${product.nome}" class="produto-admin-img">
                     <div class="produto-admin-info">

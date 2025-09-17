@@ -82,7 +82,6 @@
     <script>
         let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
 
-        //  Exibe se o pedido tiver pelo menos 1 de quantidade
         function updateCartCount() {
             const cartCountDisplay = document.querySelector('.cart-count-display');
             const totalItems = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
@@ -96,10 +95,9 @@
             }
         }
 
-
         async function fetchProducts() {
             try {
-                // A requisição GET retorna dados do produto sem a imagem 
+                // A requisição GET retorna dados do produto com o caminho da imagem
                 const response = await fetch('php/produtos_api.php');
                 const products = await response.json();
                 const produtosContainer = document.getElementById('produtos-container');
@@ -109,8 +107,10 @@
                     products.forEach(product => {
                         const productDiv = document.createElement('div');
                         productDiv.classList.add('produto');
-                        // Pegando a imagem
-                        const imageUrl = `php/produtos_api.php?get_image=true&id=${product.id}`;
+                        
+                        // Use o caminho da imagem diretamente para o src
+                        const imageUrl = product.imagem ? product.imagem : 'caminho/para/imagem/padrao.jpg';
+                        
                         productDiv.innerHTML = `
                             <img src="${imageUrl}" alt="${product.nome}">
                             <dl>
@@ -127,7 +127,6 @@
                         produtosContainer.appendChild(productDiv);
                     });
 
-                    // Função que escuta o click no botão adicionar ao carrinho no item e pega os valores
                     document.querySelectorAll('.add-to-cart').forEach(button => {
                         button.addEventListener('click', function() {
                             const productId = this.dataset.id;
@@ -137,7 +136,6 @@
 
                             const existingItemIndex = carrinho.findIndex(item => item.id == productId);
 
-                            // Verifica se o item existe e realiza a ação
                             if (existingItemIndex > -1) {
                                 if (carrinho[existingItemIndex].quantidade < productStock) {
                                     carrinho[existingItemIndex].quantidade++;

@@ -5,7 +5,6 @@ require_once 'auth.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Para lidar com atualizações enviadas via formulário POST com um campo de método específico
 if ($method === 'POST' && isset($_POST['_method']) && strtoupper($_POST['_method']) === 'PUT') {
     $method = 'PUT';
 }
@@ -13,42 +12,21 @@ if ($method === 'POST' && isset($_POST['_method']) && strtoupper($_POST['_method
 switch ($method) {
     case 'GET':
         header('Content-Type: application/json');
-        // Exibe a lista de produtos disponíveis para o cliente com preço quantidade, nome do produto e imagem
+        
         if (isset($_GET['id'])) {
             $id = $_GET['id'];
-            
-            if (isset($_GET['get_image']) && $_GET['get_image'] == 'true') {
-                $stmt_img = $pdo->prepare("SELECT imagem FROM produtos WHERE id = ?");
-                $stmt_img->execute([$id]);
-                $imageData = $stmt_img->fetch(PDO::FETCH_ASSOC);
+            $stmt = $pdo->prepare("SELECT id, nome, preco, estoque, imagem FROM produtos WHERE id = ?");
+            $stmt->execute([$id]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
-
-                if ($imageData && !empty($imageData['imagem'])) {
-                    header("Content-Type: image/png"); // Define um tipo padrão de imagem
-                    echo $imageData['imagem'];
-                } else {
-                    // Será exibido apenas o nome do produto se ele não tiver imagem
-                    header("Content-Type: image/png");
-                    readfile("img/placeholder.png");
-                }
-                exit();
-
+            if ($product) {
+                echo json_encode($product);
             } else {
-                // Busca os detalhes do produto sem a imagem
-                $stmt = $pdo->prepare("SELECT id, nome, preco, estoque FROM produtos WHERE id = ?");
-                $stmt->execute([$id]);
-                $product = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                if ($product) {
-                    echo json_encode($product);
-                } else {
-                    http_response_code(404);
-                    echo json_encode(['message' => 'Produto não encontrado.']);
-                }
+                http_response_code(404);
+                echo json_encode(['message' => 'Produto não encontrado.']);
             }
         } else {
-            // Lista todos os produtos sem imagem
-            $stmt = $pdo->query("SELECT id, nome, preco, estoque FROM produtos");
+            $stmt = $pdo->query("SELECT id, nome, preco, estoque, imagem FROM produtos");
             echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
         }
         break;
@@ -64,9 +42,8 @@ switch ($method) {
         $nome = $_POST['nome'] ?? '';
         $preco = $_POST['preco'] ?? 0;
         $estoque = $_POST['estoque'] ?? 0;
-        $imagem = null;
+        $imagem_path = null;
 
-        // Campos não podem ser vazios
         if (empty($nome) || empty($preco)) {
             http_response_code(400);
             echo json_encode(['message' => 'Nome e preço são obrigatórios.']);
@@ -74,32 +51,30 @@ switch ($method) {
         }
 
         if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] == UPLOAD_ERR_OK) {
-            // Valida o tipo de arquivo
-            $finfo = new finfo(FILEINFO_MIME_TYPE);
-            $mime_type = $finfo->file($_FILES['imagem']['tmp_name']);
-            if (!in_array($mime_type, ['image/jpeg', 'image/png', 'image/gif'])) {
-                http_response_code(400);
-                echo json_encode(['message' => 'Tipo de arquivo não permitido. Apenas JPG, PNG, GIF.']);
-                exit();
-            }
-
-            // Valida o tamanho do arquivo ele só pode ser 16mb por conta do tipo MEDIUMBLOB
-            if ($_FILES['imagem']['size'] > 16 * 1024 * 1024) {
-                 http_response_code(400);
-                 echo json_encode(['message' => 'Imagem muito grande. Máximo 16MB.']);
+            $target_dir = "../images/produtos/";
+            // Verifica se o diretório existe e é gravável
+            if (!is_dir($target_dir) && !mkdir($target_dir, 0777, true)) {
+                 http_response_code(500);
+                 echo json_encode(['message' => 'Erro: A pasta de imagens não pode ser criada ou não tem permissão de escrita.']);
                  exit();
             }
 
-            $imagem = file_get_contents($_FILES['imagem']['tmp_name']);
+            $imageFileType = strtolower(pathinfo($_FILES['imagem']['name'], PATHINFO_EXTENSION));
+            $newFileName = uniqid() . '.' . $imageFileType;
+            $target_file = $target_dir . $newFileName;
+
+            if (move_uploaded_file($_FILES["imagem"]["tmp_name"], $target_file)) {
+                $imagem_path = 'images/produtos/' . $newFileName;
+            } else {
+                http_response_code(500);
+                echo json_encode(['message' => 'Erro ao fazer upload da imagem.']);
+                exit();
+            }
         }
 
         try {
             $stmt = $pdo->prepare("INSERT INTO produtos (nome, preco, imagem, estoque) VALUES (?, ?, ?, ?)");
-            $stmt->bindParam(1, $nome);
-            $stmt->bindParam(2, $preco);
-            $stmt->bindParam(3, $imagem, PDO::PARAM_LOB);
-            $stmt->bindParam(4, $estoque);
-            $stmt->execute();
+            $stmt->execute([$nome, $preco, $imagem_path, $estoque]);
             echo json_encode(['message' => 'Produto adicionado com sucesso!', 'id' => $pdo->lastInsertId()]);
         } catch (PDOException $e) {
             http_response_code(500);
@@ -119,46 +94,37 @@ switch ($method) {
         $nome = $_POST['nome'] ?? '';
         $preco = $_POST['preco'] ?? 0;
         $estoque = $_POST['estoque'] ?? 0;
+        $imagem_path = null;
 
         if (empty($id) || empty($nome) || empty($preco)) {
             http_response_code(400);
             echo json_encode(['message' => 'ID, nome e preço são obrigatórios para edição.']);
             exit();
         }
-
+        
         try {
-            // Verifica se uma nova imagem foi enviada
-            if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] == UPLOAD_ERR_OK) {
-                $finfo = new finfo(FILEINFO_MIME_TYPE);
-                $mime_type = $finfo->file($_FILES['imagem']['tmp_name']);
-                if (!in_array($mime_type, ['image/jpeg', 'image/png', 'image/gif'])) {
-                    http_response_code(400);
-                    echo json_encode(['message' => 'Tipo de arquivo não permitido.']);
-                    exit();
-                }
-                if ($_FILES['imagem']['size'] > 16 * 1024 * 1024) {
-                     http_response_code(400);
-                     echo json_encode(['message' => 'Imagem muito grande. Máximo 16MB.']);
-                     exit();
-                }
-                $imagem = file_get_contents($_FILES['imagem']['tmp_name']);
+            $stmt_old_img = $pdo->prepare("SELECT imagem FROM produtos WHERE id = ?");
+            $stmt_old_img->execute([$id]);
+            $old_image_path = $stmt_old_img->fetchColumn();
 
-                // Atualiza todos os campos, incluindo a imagem
-                $stmt = $pdo->prepare("UPDATE produtos SET nome = ?, preco = ?, estoque = ?, imagem = ? WHERE id = ?");
-                $stmt->bindParam(1, $nome);
-                $stmt->bindParam(2, $preco);
-                $stmt->bindParam(3, $estoque);
-                $stmt->bindParam(4, $imagem, PDO::PARAM_LOB);
-                $stmt->bindParam(5, $id);
+            if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] == UPLOAD_ERR_OK) {
+                $target_dir = "../images/produtos/";
+                $imageFileType = strtolower(pathinfo($_FILES['imagem']['name'], PATHINFO_EXTENSION));
+                $newFileName = uniqid() . '.' . $imageFileType;
+                $target_file = $target_dir . $newFileName;
+
+                if (move_uploaded_file($_FILES["imagem"]["tmp_name"], $target_file)) {
+                    if ($old_image_path && file_exists("../" . $old_image_path)) {
+                        unlink("../" . $old_image_path);
+                    }
+                    $imagem_path = 'images/produtos/' . $newFileName;
+                }
             } else {
-                // Atualiza os campos, mas mantém a imagem existente
-                $stmt = $pdo->prepare("UPDATE produtos SET nome = ?, preco = ?, estoque = ? WHERE id = ?");
-                $stmt->bindParam(1, $nome);
-                $stmt->bindParam(2, $preco);
-                $stmt->bindParam(3, $estoque);
-                $stmt->bindParam(4, $id);
+                $imagem_path = $old_image_path;
             }
-            $stmt->execute();
+
+            $stmt = $pdo->prepare("UPDATE produtos SET nome = ?, preco = ?, estoque = ?, imagem = ? WHERE id = ?");
+            $stmt->execute([$nome, $preco, $estoque, $imagem_path, $id]);
             echo json_encode(['message' => 'Produto atualizado com sucesso!']);
         } catch (PDOException $e) {
             http_response_code(500);
@@ -185,10 +151,27 @@ switch ($method) {
         }
 
         try {
+            $stmt_img = $pdo->prepare("SELECT imagem FROM produtos WHERE id = ?");
+            $stmt_img->execute([$id]);
+            $imagem_path = $stmt_img->fetchColumn();
+            
+            $pdo->beginTransaction();
             $stmt = $pdo->prepare("DELETE FROM produtos WHERE id = ?");
             $stmt->execute([$id]);
-            echo json_encode(['message' => 'Produto excluído com sucesso!']);
+            
+            if ($stmt->rowCount() > 0) {
+                if ($imagem_path && file_exists("../" . $imagem_path)) {
+                    unlink("../" . $imagem_path);
+                }
+                $pdo->commit();
+                echo json_encode(['message' => 'Produto excluído com sucesso!']);
+            } else {
+                $pdo->rollBack();
+                http_response_code(404);
+                echo json_encode(['message' => 'Produto não encontrado.']);
+            }
         } catch (PDOException $e) {
+            $pdo->rollBack();
             http_response_code(500);
             echo json_encode(['message' => 'O produto está em um pedido.']);
         }
