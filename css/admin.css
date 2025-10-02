@@ -317,3 +317,41 @@ table th {
 .confirm-dialog .btn-cancel:hover {
     background-color: #5a6268;
 }
+
+/* ESTILIZAÇÃO ADICIONAL PARA FORMULÁRIOS DE ADMIN */
+
+.admin-form input[type="text"],
+.admin-form input[type="number"],
+.admin-form input[type="file"],
+.admin-form select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-family: 'Nunito Sans', sans-serif;
+    box-sizing: border-box; /* Garante que o padding não aumente a largura total */
+    margin-top: 5px;
+    background-color: #fff;
+}
+
+.admin-form select {
+    /* Remove a aparência padrão do navegador */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 16px;
+    padding-right: 40px; 
+}
+
+.admin-form input[type="text"]:focus,
+.admin-form input[type="number"]:focus,
+.admin-form input[type="file"]:focus,
+.admin-form select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}

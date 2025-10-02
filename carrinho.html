@@ -63,20 +63,16 @@
             <button id="finalizar-pedido" class="btn-cta">Finalizar Pedido</button>
         </div>
     </main>
-
-    <script src="js/main.js"></script>
-    <script src="js/main.js"></script>
+    
+    <script src="js/main.js"></script> 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // verifica o status de autenticação com o servidor
             fetch('php/auth_status.php')
                 .then(res => res.json())
                 .then(data => {
                     if (data.isAuthenticated) {
-                        // Se o usuário está autenticado no servidor inicializa o carrinho
                         initializeCart();
                     } else {
-                        // Se não estiver exibe notificação e redireciona para o login.
                         showNotification('Você precisa estar logado para acessar o carrinho.', 'error');
                         localStorage.removeItem('userAuth');
                         setTimeout(() => { window.location.href = 'login.html'; }, 2000);
@@ -89,16 +85,13 @@
         });
 
         function initializeCart() {
-            // Referências aos elementos do DOM
             const carrinhoItensContainer = document.getElementById('carrinho-itens-container');
             const carrinhoResumoContainer = document.getElementById('carrinho-resumo-container');
             const carrinhoTotalSpan = document.getElementById('carrinho-total');
             const finalizarPedidoBtn = document.getElementById('finalizar-pedido');
 
-            // Carrega o carrinho do localStorage
             let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
             
-            // Mostra os itens do carrinho na tela
             function renderCart() {
                 carrinhoItensContainer.innerHTML = '';
                 let total = 0;
@@ -112,18 +105,20 @@
                         const itemTotal = item.preco * item.quantidade;
                         total += itemTotal;
 
-                        const imageUrl = `php/produtos_api.php?get_image=true&id=${item.id}`;
+                        // LINHA ALTERADA - Agora usa o caminho da imagem salvo no item
+                        const imageUrl = item.imagem ? item.imagem : 'caminho/para/imagem/padrao.jpg';
+                        
                         const itemDiv = document.createElement('div');
                         itemDiv.classList.add('carrinho-item');
                         itemDiv.innerHTML = `
                             <img src="${imageUrl}" alt="${item.nome}" class="item-image">
                             <div class="item-details">
                                 <span class="item-name">${item.nome}</span>
-                                <span class="item-price">R$ ${parseFloat(item.preco).toFixed(2)}</span>
+                                <span class="item-price">R$ ${parseFloat(item.preco).toFixed(2).replace('.',',')} / ${item.unidade_medida || 'un'}</span>
                             </div>
                             <div class="item-controls">
                                 <input type="number" value="${item.quantidade}" min="1" max="${item.estoque_disponivel}" data-id="${item.id}" class="quantidade-input">
-                                <span class="item-subtotal">R$ ${itemTotal.toFixed(2)}</span>
+                                <span class="item-subtotal">R$ ${itemTotal.toFixed(2).replace('.',',')}</span>
                                 <button class="remover-item" data-id="${item.id}" title="Remover item"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         `;
@@ -131,13 +126,13 @@
                     });
                 }
 
-                carrinhoTotalSpan.textContent = total.toFixed(2);
+                carrinhoTotalSpan.textContent = total.toFixed(2).replace('.',',');
+                // A função updateCartCount() deve estar no seu js/main.js
                 if (typeof updateCartCount === 'function') {
                     updateCartCount();
                 }
             }
 
-            // Atualiza a quantidade de itens no carrinho
             function updateCartItem(productId, newQuantity) {
                 const itemIndex = carrinho.findIndex(item => item.id == productId);
                 if (itemIndex > -1) {
@@ -157,7 +152,6 @@
                 }
             }
 
-            // Evento que escuta a mudança de quantidade de itens do carrinho
             carrinhoItensContainer.addEventListener('change', function (event) {
                 if (event.target.classList.contains('quantidade-input')) {
                     const productId = event.target.dataset.id;
@@ -166,7 +160,6 @@
                 }
             });
             
-            // Evento que escuta o click no button de remover e remove o item do carrinho
             carrinhoItensContainer.addEventListener('click', function (event) {
                 const removerBtn = event.target.closest('.remover-item');
                 if (removerBtn) {
@@ -179,7 +172,6 @@
                 }
             });
 
-            // Não permite carrinho vazio fazer compra
             finalizarPedidoBtn.addEventListener('click', async function () {
                 if (carrinho.length === 0) {
                     showNotification('Seu carrinho está vazio.', 'error');
@@ -216,8 +208,7 @@
                     showNotification('Ocorreu um erro de comunicação ao finalizar o pedido.', 'error');
                 }
             });
-
-            // Renderização inicial e listener para atualizações externas
+            
             renderCart();
             document.addEventListener('cartUpdated', renderCart);
         }
