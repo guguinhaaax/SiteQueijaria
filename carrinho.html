@@ -65,7 +65,11 @@
     </main>
 
     <script src="js/main.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/composite/ProductComponent.js"></script>
+    <script src="js/composite/ProductLeaf.js"></script>
+    <script src="js/composite/ProductComposite.js"></script>
+    <script src="js/CartManager.js"></script>
+    <script src="js/kits.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // verifica o status de autenticação com o servidor
@@ -89,26 +93,30 @@
         });
 
         function initializeCart() {
-            // Referências aos elementos do DOM
+            // ✅ NOVO: Inicializa o CartManager (Composite Pattern)
+            const cartManager = new CartManager();
+            
+            // Referências aos elementos do DOM (MANTIDO)
             const carrinhoItensContainer = document.getElementById('carrinho-itens-container');
             const carrinhoResumoContainer = document.getElementById('carrinho-resumo-container');
             const carrinhoTotalSpan = document.getElementById('carrinho-total');
             const finalizarPedidoBtn = document.getElementById('finalizar-pedido');
 
-            // Carrega o carrinho do localStorage
-            let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
-            
-            // Mostra os itens do carrinho na tela
+            // ✅ ATUALIZADO: função renderCart usando CartManager
             function renderCart() {
                 carrinhoItensContainer.innerHTML = '';
+                // ✅ Obtém itens do CartManager em vez de localStorage direto
+                const items = cartManager.getItems();
                 let total = 0;
 
-                if (carrinho.length === 0) {
+                if (items.length === 0) {
                     carrinhoItensContainer.innerHTML = '<p class="carrinho-vazio">Seu carrinho está vazio.</p>';
                     carrinhoResumoContainer.style.display = 'none'; 
                 } else {
                     carrinhoResumoContainer.style.display = 'block'; 
-                    carrinho.forEach(item => {
+                    
+                    // Itera sobre items do CartManager
+                    items.forEach(item => {
                         const itemTotal = item.preco * item.quantidade;
                         total += itemTotal;
 
@@ -120,6 +128,7 @@
                             <div class="item-details">
                                 <span class="item-name">${item.nome}</span>
                                 <span class="item-price">R$ ${parseFloat(item.preco).toFixed(2)}</span>
+                                ${item.tipo === 'kit' ? '<span class="item-type">(Kit)</span>' : ''}
                             </div>
                             <div class="item-controls">
                                 <input type="number" value="${item.quantidade}" min="1" max="${item.estoque_disponivel}" data-id="${item.id}" class="quantidade-input">
@@ -131,33 +140,26 @@
                     });
                 }
 
-                carrinhoTotalSpan.textContent = total.toFixed(2);
+                // ✅ Usa CartManager para obter total
+                carrinhoTotalSpan.textContent = cartManager.getTotal().toFixed(2);
                 if (typeof updateCartCount === 'function') {
                     updateCartCount();
                 }
             }
 
-            // Atualiza a quantidade de itens no carrinho
+            // ✅ ATUALIZADO: função updateCartItem usando CartManager
             function updateCartItem(productId, newQuantity) {
-                const itemIndex = carrinho.findIndex(item => item.id == productId);
-                if (itemIndex > -1) {
-                    const maxAllowed = carrinho[itemIndex].estoque_disponivel;
-                    let finalQuantity = parseInt(newQuantity);
-
-                    if (finalQuantity > maxAllowed) {
-                        showNotification(`Quantidade máxima para ${carrinho[itemIndex].nome} é ${maxAllowed}.`, 'error');
-                        finalQuantity = maxAllowed;
-                    } else if (finalQuantity < 1) {
-                        finalQuantity = 1;
-                    }
-
-                    carrinho[itemIndex].quantidade = finalQuantity;
-                    localStorage.setItem('carrinho', JSON.stringify(carrinho));
+                try {
+                    // ✅ Usa CartManager em vez de manipular array diretamente
+                    cartManager.updateQuantity(productId, newQuantity);
                     renderCart();
+                } catch (error) {
+                    showNotification(error.message, 'error');
+                    renderCart(); // Re-render para mostrar valores corrigidos
                 }
             }
 
-            // Evento que escuta a mudança de quantidade de itens do carrinho
+            // ✅ MANTIDO: Event listener para mudança de quantidade
             carrinhoItensContainer.addEventListener('change', function (event) {
                 if (event.target.classList.contains('quantidade-input')) {
                     const productId = event.target.dataset.id;
@@ -166,22 +168,23 @@
                 }
             });
             
-            // Evento que escuta o click no button de remover e remove o item do carrinho
+            // ✅ ATUALIZADO: Event listener para remover item usando CartManager
             carrinhoItensContainer.addEventListener('click', function (event) {
                 const removerBtn = event.target.closest('.remover-item');
                 if (removerBtn) {
                     const productId = removerBtn.dataset.id;
-                    carrinho = carrinho.filter(item => item.id != productId);
-                    localStorage.setItem('carrinho', JSON.stringify(carrinho));
+                    // ✅ Usa CartManager para remover
+                    cartManager.removeItem(productId);
                     showNotification('Item removido do carrinho.', 'success');
                     renderCart();
                     document.dispatchEvent(new CustomEvent('cartUpdated'));
                 }
             });
 
-            // Não permite carrinho vazio fazer compra
+            // ✅ ATUALIZADO: Event listener para finalizar pedido usando CartManager
             finalizarPedidoBtn.addEventListener('click', async function () {
-                if (carrinho.length === 0) {
+                // ✅ Verifica se carrinho está vazio usando CartManager
+                if (cartManager.getItems().length === 0) {
                     showNotification('Seu carrinho está vazio.', 'error');
                     return;
                 }
@@ -192,8 +195,12 @@
                     const response = await fetch('php/pedidos_api.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
+                        // ✅ Obtém carrinho do CartManager
                         body: JSON.stringify({
-                            carrinho: carrinho.map(item => ({ produto_id: item.id, quantidade: item.quantidade })),
+                            carrinho: cartManager.getItems().map(item => ({ 
+                                produto_id: item.id, 
+                                quantidade: item.quantidade 
+                            })),
                             tipo_entrega: tipoEntrega
                         })
                     });
@@ -201,8 +208,8 @@
 
                     if (response.ok) {
                         showNotification(data.message, 'success');
-                        localStorage.removeItem('carrinho');
-                        carrinho = [];
+                        // ✅ Limpa carrinho usando CartManager
+                        cartManager.clear();
                         renderCart();
                         document.dispatchEvent(new CustomEvent('cartUpdated'));
                         setTimeout(() => {
@@ -217,7 +224,7 @@
                 }
             });
 
-            // Renderização inicial e listener para atualizações externas
+            // ✅ MANTIDO: Renderização inicial e listener para atualizações externas
             renderCart();
             document.addEventListener('cartUpdated', renderCart);
         }
