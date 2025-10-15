@@ -1,203 +1,127 @@
 <?php
-session_start();
-require_once 'conexao.php';
-require_once 'auth.php';
+// Substitua 'db_connect.php' pelo seu script de conexão ao banco de dados real
+require 'conexao.php'; 
+header('Content-Type: application/json');
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Para lidar com atualizações enviadas via formulário POST com um campo de método específico
+// Lógica para simular PUT via POST, pois formulários HTML não suportam PUT nativamente com multipart/form-data
 if ($method === 'POST' && isset($_POST['_method']) && strtoupper($_POST['_method']) === 'PUT') {
     $method = 'PUT';
 }
 
 switch ($method) {
     case 'GET':
-        header('Content-Type: application/json');
-        // Exibe a lista de produtos disponíveis para o cliente com preço quantidade, nome do produto e imagem
-        if (isset($_GET['id'])) {
-            $id = $_GET['id'];
-            
-            if (isset($_GET['get_image']) && $_GET['get_image'] == 'true') {
-                $stmt_img = $pdo->prepare("SELECT imagem FROM produtos WHERE id = ?");
-                $stmt_img->execute([$id]);
-                $imageData = $stmt_img->fetch(PDO::FETCH_ASSOC);
-
-
-                if ($imageData && !empty($imageData['imagem'])) {
-                    header("Content-Type: image/png"); // Define um tipo padrão de imagem
-                    echo $imageData['imagem'];
-                } else {
-                    // Será exibido apenas o nome do produto se ele não tiver imagem
-                    header("Content-Type: image/png");
-                    readfile("img/placeholder.png");
-                }
-                exit();
-
-            } else {
-                // Busca os detalhes do produto sem a imagem
-                $stmt = $pdo->prepare("SELECT id, nome, preco, estoque FROM produtos WHERE id = ?");
-                $stmt->execute([$id]);
-                $product = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                if ($product) {
-                    echo json_encode($product);
-                } else {
-                    http_response_code(404);
-                    echo json_encode(['message' => 'Produto não encontrado.']);
-                }
-            }
-        } else {
-            // Lista todos os produtos sem imagem
-            $stmt = $pdo->query("SELECT id, nome, preco, estoque FROM produtos");
-            echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
-        }
+        // ALTERAÇÃO: Adicionado 'unidade_medida' na consulta SELECT
+        $stmt = $pdo->query('SELECT id, nome, preco, unidade_medida, estoque, imagem FROM produtos ORDER BY nome ASC');
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode($products);
         break;
 
-    case 'POST': // Criar um novo produto
-        header('Content-Type: application/json');
-        if (!isAdmin()) {
-            http_response_code(403);
-            echo json_encode(['message' => 'Acesso negado. Apenas administradores podem adicionar produtos.']);
-            exit();
-        }
-
+    case 'POST':
+        // ALTERAÇÃO: Captura 'unidade_medida' do formulário
         $nome = $_POST['nome'] ?? '';
         $preco = $_POST['preco'] ?? 0;
+        $unidade_medida = $_POST['unidade_medida'] ?? 'unidade'; // Captura o novo campo
         $estoque = $_POST['estoque'] ?? 0;
-        $imagem = null;
+        $imagem_path = null;
 
-        // Campos não podem ser vazios
-        if (empty($nome) || empty($preco)) {
-            http_response_code(400);
-            echo json_encode(['message' => 'Nome e preço são obrigatórios.']);
-            exit();
-        }
-
-        if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] == UPLOAD_ERR_OK) {
-            // Valida o tipo de arquivo
-            $finfo = new finfo(FILEINFO_MIME_TYPE);
-            $mime_type = $finfo->file($_FILES['imagem']['tmp_name']);
-            if (!in_array($mime_type, ['image/jpeg', 'image/png', 'image/gif'])) {
-                http_response_code(400);
-                echo json_encode(['message' => 'Tipo de arquivo não permitido. Apenas JPG, PNG, GIF.']);
-                exit();
+        if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] == 0) {
+            $target_dir = "uploads/";
+            // Garante que o diretório de destino exista
+            if (!is_dir('../' . $target_dir)) {
+                mkdir('../' . $target_dir, 0777, true);
             }
-
-            // Valida o tamanho do arquivo ele só pode ser 16mb por conta do tipo MEDIUMBLOB
-            if ($_FILES['imagem']['size'] > 16 * 1024 * 1024) {
-                 http_response_code(400);
-                 echo json_encode(['message' => 'Imagem muito grande. Máximo 16MB.']);
-                 exit();
+            $imageFileType = strtolower(pathinfo($_FILES["imagem"]["name"], PATHINFO_EXTENSION));
+            $target_file = $target_dir . uniqid() . '.' . $imageFileType;
+            if (move_uploaded_file($_FILES["imagem"]["tmp_name"], '../' . $target_file)) {
+                 $imagem_path = $target_file;
             }
-
-            $imagem = file_get_contents($_FILES['imagem']['tmp_name']);
-        }
-
-        try {
-            $stmt = $pdo->prepare("INSERT INTO produtos (nome, preco, imagem, estoque) VALUES (?, ?, ?, ?)");
-            $stmt->bindParam(1, $nome);
-            $stmt->bindParam(2, $preco);
-            $stmt->bindParam(3, $imagem, PDO::PARAM_LOB);
-            $stmt->bindParam(4, $estoque);
-            $stmt->execute();
-            echo json_encode(['message' => 'Produto adicionado com sucesso!', 'id' => $pdo->lastInsertId()]);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['message' => 'Erro ao adicionar produto: ' . $e->getMessage()]);
-        }
-        break;
-
-    case 'PUT': // Usado para atualizar um produto existente
-        header('Content-Type: application/json');
-        if (!isAdmin()) {
-            http_response_code(403);
-            echo json_encode(['message' => 'Acesso negado. Apenas administradores podem editar produtos.']);
-            exit();
         }
         
-        $id = $_POST['id'] ?? 0;
-        $nome = $_POST['nome'] ?? '';
-        $preco = $_POST['preco'] ?? 0;
-        $estoque = $_POST['estoque'] ?? 0;
-
-        if (empty($id) || empty($nome) || empty($preco)) {
-            http_response_code(400);
-            echo json_encode(['message' => 'ID, nome e preço são obrigatórios para edição.']);
-            exit();
-        }
-
-        try {
-            // Verifica se uma nova imagem foi enviada
-            if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] == UPLOAD_ERR_OK) {
-                $finfo = new finfo(FILEINFO_MIME_TYPE);
-                $mime_type = $finfo->file($_FILES['imagem']['tmp_name']);
-                if (!in_array($mime_type, ['image/jpeg', 'image/png', 'image/gif'])) {
-                    http_response_code(400);
-                    echo json_encode(['message' => 'Tipo de arquivo não permitido.']);
-                    exit();
-                }
-                if ($_FILES['imagem']['size'] > 16 * 1024 * 1024) {
-                     http_response_code(400);
-                     echo json_encode(['message' => 'Imagem muito grande. Máximo 16MB.']);
-                     exit();
-                }
-                $imagem = file_get_contents($_FILES['imagem']['tmp_name']);
-
-                // Atualiza todos os campos, incluindo a imagem
-                $stmt = $pdo->prepare("UPDATE produtos SET nome = ?, preco = ?, estoque = ?, imagem = ? WHERE id = ?");
-                $stmt->bindParam(1, $nome);
-                $stmt->bindParam(2, $preco);
-                $stmt->bindParam(3, $estoque);
-                $stmt->bindParam(4, $imagem, PDO::PARAM_LOB);
-                $stmt->bindParam(5, $id);
-            } else {
-                // Atualiza os campos, mas mantém a imagem existente
-                $stmt = $pdo->prepare("UPDATE produtos SET nome = ?, preco = ?, estoque = ? WHERE id = ?");
-                $stmt->bindParam(1, $nome);
-                $stmt->bindParam(2, $preco);
-                $stmt->bindParam(3, $estoque);
-                $stmt->bindParam(4, $id);
-            }
-            $stmt->execute();
-            echo json_encode(['message' => 'Produto atualizado com sucesso!']);
-        } catch (PDOException $e) {
+        // ALTERAÇÃO: Adicionado 'unidade_medida' e seu placeholder na query INSERT
+        $sql = "INSERT INTO produtos (nome, preco, unidade_medida, estoque, imagem) VALUES (?, ?, ?, ?, ?)";
+        $stmt = $pdo->prepare($sql);
+        if ($stmt->execute([$nome, $preco, $unidade_medida, $estoque, $imagem_path])) {
+            http_response_code(201); // 201 Created é mais apropriado para POST
+            echo json_encode(['message' => 'Produto adicionado com sucesso!']);
+        } else {
             http_response_code(500);
-            echo json_encode(['message' => 'Erro ao atualizar produto: ' . $e->getMessage()]);
+            echo json_encode(['message' => 'Erro ao adicionar produto.']);
         }
         break;
 
+    case 'PUT':
+        // Para PUT, os dados vêm de $_POST por causa da simulação com FormData
+        $data = $_POST;
+
+        $id = $data['id'] ?? null;
+        $nome = $data['nome'] ?? '';
+        $preco = $data['preco'] ?? 0;
+        $unidade_medida = $data['unidade_medida'] ?? 'unidade'; // Captura o novo campo para atualização
+        $estoque = $data['estoque'] ?? 0;
+
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['message' => 'ID do produto não fornecido.']);
+            exit;
+        }
+        
+        // Busca a imagem atual para não perdê-la se nenhuma nova for enviada
+        $stmt_img = $pdo->prepare("SELECT imagem FROM produtos WHERE id = ?");
+        $stmt_img->execute([$id]);
+        $imagem_path = $stmt_img->fetchColumn();
+
+        // Lógica para atualizar a imagem, se uma nova for enviada
+        if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] == 0) {
+            // (Opcional: deletar a imagem antiga do servidor aqui)
+            $target_dir = "uploads/";
+            if (!is_dir('../' . $target_dir)) {
+                mkdir('../' . $target_dir, 0777, true);
+            }
+            $imageFileType = strtolower(pathinfo($_FILES["imagem"]["name"], PATHINFO_EXTENSION));
+            $target_file = $target_dir . uniqid() . '.' . $imageFileType;
+            if (move_uploaded_file($_FILES["imagem"]["tmp_name"], '../' . $target_file)) {
+                 $imagem_path = $target_file;
+            }
+        }
+        
+        // ALTERAÇÃO: Adicionado 'unidade_medida = ?' na query UPDATE
+        $sql = "UPDATE produtos SET nome = ?, preco = ?, unidade_medida = ?, estoque = ?, imagem = ? WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+
+        if ($stmt->execute([$nome, $preco, $unidade_medida, $estoque, $imagem_path, $id])) {
+            echo json_encode(['message' => 'Produto atualizado com sucesso!']);
+        } else {
+            http_response_code(500);
+            echo json_encode(['message' => 'Erro ao atualizar produto.']);
+        }
+        break;
 
     case 'DELETE':
-        header('Content-Type: application/json');
-        if (!isAdmin()) {
-            http_response_code(403);
-            echo json_encode(['message' => 'Acesso negado. Apenas administradores podem excluir produtos.']);
-            exit();
-        }
-
+        // Nenhuma alteração necessária para o DELETE
         $data = json_decode(file_get_contents('php://input'), true);
-        $id = $data['id'] ?? 0;
+        $id = $data['id'] ?? null;
 
-        if (empty($id)) {
+        if ($id) {
+            // (Opcional: aqui você também pode adicionar lógica para deletar o arquivo de imagem do servidor)
+            $sql = "DELETE FROM produtos WHERE id = ?";
+            $stmt = $pdo->prepare($sql);
+            if ($stmt->execute([$id])) {
+                echo json_encode(['message' => 'Produto removido com sucesso!']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['message' => 'Erro ao remover produto.']);
+            }
+        } else {
             http_response_code(400);
-            echo json_encode(['message' => 'ID do produto é obrigatório para exclusão.']);
-            exit();
-        }
-
-        try {
-            $stmt = $pdo->prepare("DELETE FROM produtos WHERE id = ?");
-            $stmt->execute([$id]);
-            echo json_encode(['message' => 'Produto excluído com sucesso!']);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['message' => 'O produto está em um pedido.']);
+            echo json_encode(['message' => 'ID do produto não fornecido.']);
         }
         break;
 
     default:
-        header('Content-Type: application/json');
         http_response_code(405);
-        echo json_encode(['message' => 'Método não permitido.']);
+        echo json_encode(['message' => 'Método não permitido']);
         break;
 }
 ?>

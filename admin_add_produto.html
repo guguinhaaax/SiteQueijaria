@@ -57,6 +57,16 @@
                     <input type="number" id="preco-produto" name="preco" step="0.01" min="0" required>
                 </div>
                 <div class="input-group">
+                    <label for="unidade-produto">Unidade de Medida:</label>
+                    <select id="unidade-produto" name="unidade_medida" required>
+                        <option value="unidade">Unidade (un)</option>
+                        <option value="kg">Quilograma (kg)</option>
+                        <option value="g">Grama (g)</option>
+                        <option value="litro">Litro (L)</option>
+                        <option value="ml">Mililitro (ml)</option>
+                    </select>
+                </div>
+                <div class="input-group">
                     <label for="imagem-produto">Imagem do Produto:</label>
                     <input type="file" id="imagem-produto" name="imagem" accept="image/jpeg, image/png, image/gif">
                 </div>
@@ -102,11 +112,11 @@
             const dialog = document.createElement('div');
             dialog.classList.add('confirm-dialog');
             dialog.innerHTML = `
-        <p>${message}</p>
-        <div class="confirm-buttons">
-            <button class="btn-confirm">Sim, excluir</button>
-            <button class="btn-cancel">Cancelar</button>
-        </div>`;
+<p>${message}</p>
+<div class="confirm-buttons">
+    <button class="btn-confirm">Sim, excluir</button>
+    <button class="btn-cancel">Cancelar</button>
+</div>`;
 
             // Adiciona a caixa de diálogo dentro do overlay
             overlay.appendChild(dialog);
@@ -146,6 +156,7 @@
         // Faz uma requisição na API restful e cria a div com os itens e seus atributos
         async function loadProductsAdmin() {
             try {
+                // Agora, a requisição retorna o caminho da imagem
                 const response = await fetch('php/produtos_api.php');
                 const products = await response.json();
                 const listaProdutosAdmin = document.getElementById('lista-produtos-admin');
@@ -155,21 +166,25 @@
                     products.forEach(product => {
                         const productItem = document.createElement('div');
                         productItem.classList.add('produto-admin-item');
-                        const imageUrl = `php/produtos_api.php?get_image=true&id=${product.id}&t=${new Date().getTime()}`;
+
+                        // Utiliza o caminho da imagem do banco de dados diretamente
+                        const imageUrl = product.imagem ? product.imagem : 'caminho/para/imagem/padrao.jpg';
+
+                        // ATUALIZAÇÃO 1: Adicionado product.unidade_medida na exibição e data-unidade no botão de editar
                         productItem.innerHTML = `
-                    <img src="${imageUrl}" alt="${product.nome}" class="produto-admin-img">
-                    <div class="produto-admin-info">
-                        <strong>${product.nome}</strong>
-                        <span>R$ ${parseFloat(product.preco).toFixed(2)} | Estoque: ${product.estoque}</span>
-                    </div>
-                    <div class="produto-admin-actions">
-                        <button class="btn-edit-produto" data-id="${product.id}" data-nome="${product.nome}" data-preco="${product.preco}" data-estoque="${product.estoque}">
-                            <i class="fas fa-edit"></i> Editar
-                        </button>
-                        <button class="btn-delete-produto" data-id="${product.id}" data-nome="${product.nome}">
-                            <i class="fas fa-trash"></i> Remover
-                        </button>
-                    </div>`;
+                <img src="${imageUrl}" alt="${product.nome}" class="produto-admin-img">
+                <div class="produto-admin-info">
+                    <strong>${product.nome}</strong>
+                    <span>R$ ${parseFloat(product.preco).toFixed(2)} / ${product.unidade_medida} | Estoque: ${product.estoque}</span>
+                </div>
+                <div class="produto-admin-actions">
+                    <button class="btn-edit-produto" data-id="${product.id}" data-nome="${product.nome}" data-preco="${product.preco}" data-estoque="${product.estoque}" data-unidade="${product.unidade_medida}">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <button class="btn-delete-produto" data-id="${product.id}" data-nome="${product.nome}">
+                        <i class="fas fa-trash"></i> Remover
+                    </button>
+                </div>`;
                         listaProdutosAdmin.appendChild(productItem);
                     });
 
@@ -179,6 +194,10 @@
                             document.getElementById('nome-produto').value = this.dataset.nome;
                             document.getElementById('preco-produto').value = this.dataset.preco;
                             document.getElementById('estoque-produto').value = this.dataset.estoque;
+
+                            // ATUALIZAÇÃO 2: Preenche o campo de unidade de medida ao clicar em editar
+                            document.getElementById('unidade-produto').value = this.dataset.unidade;
+
                             formTitle.textContent = 'Editar Produto';
                             submitBtn.textContent = 'Atualizar Produto';
                             cancelEditBtn.style.display = 'inline-block';

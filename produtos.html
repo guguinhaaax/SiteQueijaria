@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,8 +11,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="shortcut icon" href="ico/favicon.ico" type="image/x-icon">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
     <div id="notification-container"></div>
     <div class="top-bar-info">
@@ -24,14 +28,17 @@
                     <span class="cart-count-display" style="display: none;">0</span> </a>
                 <a href="minha_conta.html" id="nav-conta" style="display:none;">Minha Conta</a>
                 <a href="admin_dashboard.html" id="nav-admin" style="display:none;">Admin</a>
-                <a href="#" id="nav-logout" style="display:none;">Sair</a> </div>
+                <a href="#" id="nav-logout" style="display:none;">Sair</a>
+            </div>
         </div>
     </div>
 
     <header class="main-header-content">
         <div class="container logo-container">
             <a href="index.html" class="logo-link">
-                <img id="logo" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGeuHdGJbjRIyDGpJehNFmZX9dJ3Sy1CCEWg&s" alt="Logo Laticínio Esperança" class="main-logo-img">
+                <img id="logo"
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGeuHdGJbjRIyDGpJehNFmZX9dJ3Sy1CCEWg&s"
+                    alt="Logo Laticínio Esperança" class="main-logo-img">
             </a>
             <h1>Laticínio Esperança</h1>
         </div>
@@ -40,7 +47,8 @@
                 <ul>
                     <li><a href="index.html">Início</a></li>
                     <li><a href="produtos.html">Produtos</a></li>
-                    <li><a href="#contato">Contato</a></li> </ul>
+                    <li><a href="#contato">Contato</a></li>
+                </ul>
             </div>
         </nav>
     </header>
@@ -59,7 +67,8 @@
                     </a>
                 </p>
                 <p>
-                    <a href="https://instagram.com/laticinio_esperanca232" target="_blank"> <i class="fab fa-instagram"></i>
+                    <a href="https://instagram.com/laticinio_esperanca232" target="_blank"> <i
+                            class="fab fa-instagram"></i>
                         @laticinio_esperanca232
                     </a>
                 </p>
@@ -73,7 +82,8 @@
                 </ul>
             </div>
         </div>
-        <div class="copyright"> <p>&copy; <span id="anoAtual"></span> Laticínio Esperança. Todos os direitos reservados.</p>
+        <div class="copyright">
+            <p>&copy; <span id="anoAtual"></span> Laticínio Esperança. Todos os direitos reservados.</p>
             <p>Projeto de Faculdade - Desenvolvimento Web</p>
         </div>
     </footer>
@@ -82,7 +92,6 @@
     <script>
         let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
 
-        //  Exibe se o pedido tiver pelo menos 1 de quantidade
         function updateCartCount() {
             const cartCountDisplay = document.querySelector('.cart-count-display');
             const totalItems = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
@@ -96,10 +105,9 @@
             }
         }
 
-
         async function fetchProducts() {
             try {
-                // A requisição GET retorna dados do produto sem a imagem 
+                // A requisição GET retorna dados do produto com o caminho da imagem
                 const response = await fetch('php/produtos_api.php');
                 const products = await response.json();
                 const produtosContainer = document.getElementById('produtos-container');
@@ -109,35 +117,38 @@
                     products.forEach(product => {
                         const productDiv = document.createElement('div');
                         productDiv.classList.add('produto');
-                        // Pegando a imagem
-                        const imageUrl = `php/produtos_api.php?get_image=true&id=${product.id}`;
+
+                        // Use o caminho da imagem diretamente para o src
+                        const imageUrl = product.imagem ? product.imagem : 'caminho/para/imagem/padrao.jpg';
+
                         productDiv.innerHTML = `
-                            <img src="${imageUrl}" alt="${product.nome}">
-                            <dl>
-                                <dt>${product.nome}</dt>
-                                <dd>Preço: R$ ${parseFloat(product.preco).toFixed(2)}</dd>
-                                <dd>Estoque: ${product.estoque}</dd>
-                                <dd>
-                                    <button class="add-to-cart" data-id="${product.id}" data-nome="${product.nome}" data-preco="${product.preco}" data-estoque="${product.estoque}">
-                                        <i class="fas fa-shopping-cart"></i> Adicionar ao carrinho
-                                    </button>
-                                </dd>
-                            </dl>
-                        `;
+                    <img src="${imageUrl}" alt="${product.nome}">
+                    <dl>
+                        <dt>${product.nome}</dt>
+                        <dd>Preço: R$ ${parseFloat(product.preco).toFixed(2).replace('.', ',')} / ${product.unidade_medida}</dd>
+                        <dd>Estoque: ${product.estoque}</dd>
+                        <dd>
+                            <button class="add-to-cart" data-id="${product.id}" data-nome="${product.nome}" data-preco="${product.preco}" data-estoque="${product.estoque}" data-unidade="${product.unidade_medida}" data-imagem="${product.imagem}">
+                                <i class="fas fa-shopping-cart"></i> Adicionar ao carrinho
+                            </button>
+                        </dd>
+                    </dl>
+                `;
                         produtosContainer.appendChild(productDiv);
                     });
 
-                    // Função que escuta o click no botão adicionar ao carrinho no item e pega os valores
                     document.querySelectorAll('.add-to-cart').forEach(button => {
-                        button.addEventListener('click', function() {
+                        button.addEventListener('click', function () {
+                            // MUDANÇA 2: Capturar a unidade e a imagem do botão
                             const productId = this.dataset.id;
                             const productName = this.dataset.nome;
                             const productPrice = parseFloat(this.dataset.preco);
                             const productStock = parseInt(this.dataset.estoque);
+                            const productUnit = this.dataset.unidade;
+                            const productImage = this.dataset.imagem;
 
                             const existingItemIndex = carrinho.findIndex(item => item.id == productId);
 
-                            // Verifica se o item existe e realiza a ação
                             if (existingItemIndex > -1) {
                                 if (carrinho[existingItemIndex].quantidade < productStock) {
                                     carrinho[existingItemIndex].quantidade++;
@@ -147,10 +158,13 @@
                                 }
                             } else {
                                 if (productStock > 0) {
+                                    // MUDANÇA 3: Salvar a unidade e a imagem no objeto do carrinho
                                     carrinho.push({
                                         id: productId,
                                         nome: productName,
                                         preco: productPrice,
+                                        unidade_medida: productUnit,
+                                        imagem: productImage,
                                         quantidade: 1,
                                         estoque_disponivel: productStock
                                     });
@@ -179,4 +193,5 @@
         });
     </script>
 </body>
+
 </html>

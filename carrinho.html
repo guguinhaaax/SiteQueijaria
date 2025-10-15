@@ -63,8 +63,8 @@
             <button id="finalizar-pedido" class="btn-cta">Finalizar Pedido</button>
         </div>
     </main>
-
-    <script src="js/main.js"></script>
+    
+    <script src="js/main.js"></script> 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // verifica o status de autenticação com o servidor
@@ -72,10 +72,10 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.isAuthenticated) {
-                        // Se o usuário está autenticado no servidor inicializa o carrinho
+                        // Se o usuário está autenticado no servidor, inicializa o carrinho
                         initializeCart();
                     } else {
-                        // Se não estiver exibe notificação e redireciona para o login.
+                        // Se não estiver, exibe notificação e redireciona para o login.
                         showNotification('Você precisa estar logado para acessar o carrinho.', 'error');
                         localStorage.removeItem('userAuth');
                         setTimeout(() => { window.location.href = 'login.html'; }, 2000);
@@ -94,7 +94,7 @@
             const finalizarPedidoBtn = document.getElementById('finalizar-pedido');
 
             let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
-
+            
             function renderCart() {
                 carrinhoItensContainer.innerHTML = '';
                 let total = 0;
@@ -108,18 +108,21 @@
                         const itemTotal = item.preco * item.quantidade;
                         total += itemTotal;
 
+                        // **MUDANÇA APLICADA:** Busca a imagem dinamicamente da API
                         const imageUrl = `php/produtos_api.php?get_image=true&id=${item.id}`;
+                        
                         const itemDiv = document.createElement('div');
                         itemDiv.classList.add('carrinho-item');
+                        // **LÓGICA MANTIDA:** Preserva a formatação de moeda e unidade de medida
                         itemDiv.innerHTML = `
                             <img src="${imageUrl}" alt="${item.nome}" class="item-image">
                             <div class="item-details">
                                 <span class="item-name">${item.nome}</span>
-                                <span class="item-price">R$ ${parseFloat(item.preco).toFixed(2)}</span>
+                                <span class="item-price">R$ ${parseFloat(item.preco).toFixed(2).replace('.',',')} / ${item.unidade_medida || 'un'}</span>
                             </div>
                             <div class="item-controls">
                                 <input type="number" value="${item.quantidade}" min="1" max="${item.estoque_disponivel}" data-id="${item.id}" class="quantidade-input">
-                                <span class="item-subtotal">R$ ${itemTotal.toFixed(2)}</span>
+                                <span class="item-subtotal">R$ ${itemTotal.toFixed(2).replace('.',',')}</span>
                                 <button class="remover-item" data-id="${item.id}" title="Remover item"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         `;
@@ -127,7 +130,8 @@
                     });
                 }
 
-                carrinhoTotalSpan.textContent = total.toFixed(2);
+                // **LÓGICA MANTIDA:** Formatação do total com vírgula
+                carrinhoTotalSpan.textContent = total.toFixed(2).replace('.',',');
                 if (typeof updateCartCount === 'function') {
                     updateCartCount();
                 }
@@ -172,6 +176,7 @@
                 }
             });
 
+            // **MUDANÇA APLICADA:** Lógica de finalização de pedido com tentativas automáticas
             finalizarPedidoBtn.addEventListener('click', async function () {
                 if (carrinho.length === 0) {
                     showNotification('Seu carrinho está vazio.', 'error');
@@ -223,7 +228,7 @@
                     }
                 }
             });
-
+            
             renderCart();
             document.addEventListener('cartUpdated', renderCart);
         }
