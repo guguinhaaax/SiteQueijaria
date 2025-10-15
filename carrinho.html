@@ -65,7 +65,6 @@
     </main>
 
     <script src="js/main.js"></script>
-    <script src="js/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // verifica o status de autenticação com o servidor
@@ -89,16 +88,13 @@
         });
 
         function initializeCart() {
-            // Referências aos elementos do DOM
             const carrinhoItensContainer = document.getElementById('carrinho-itens-container');
             const carrinhoResumoContainer = document.getElementById('carrinho-resumo-container');
             const carrinhoTotalSpan = document.getElementById('carrinho-total');
             const finalizarPedidoBtn = document.getElementById('finalizar-pedido');
 
-            // Carrega o carrinho do localStorage
             let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
-            
-            // Mostra os itens do carrinho na tela
+
             function renderCart() {
                 carrinhoItensContainer.innerHTML = '';
                 let total = 0;
@@ -137,7 +133,6 @@
                 }
             }
 
-            // Atualiza a quantidade de itens no carrinho
             function updateCartItem(productId, newQuantity) {
                 const itemIndex = carrinho.findIndex(item => item.id == productId);
                 if (itemIndex > -1) {
@@ -157,7 +152,6 @@
                 }
             }
 
-            // Evento que escuta a mudança de quantidade de itens do carrinho
             carrinhoItensContainer.addEventListener('change', function (event) {
                 if (event.target.classList.contains('quantidade-input')) {
                     const productId = event.target.dataset.id;
@@ -166,7 +160,6 @@
                 }
             });
             
-            // Evento que escuta o click no button de remover e remove o item do carrinho
             carrinhoItensContainer.addEventListener('click', function (event) {
                 const removerBtn = event.target.closest('.remover-item');
                 if (removerBtn) {
@@ -179,7 +172,6 @@
                 }
             });
 
-            // Não permite carrinho vazio fazer compra
             finalizarPedidoBtn.addEventListener('click', async function () {
                 if (carrinho.length === 0) {
                     showNotification('Seu carrinho está vazio.', 'error');
@@ -187,37 +179,51 @@
                 }
 
                 const tipoEntrega = document.getElementById('tipo-entrega-retirada').value;
+                const maxRetries = 3;
+                const retryDelay = 1000; // 1 segundo
 
-                try {
-                    const response = await fetch('php/pedidos_api.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            carrinho: carrinho.map(item => ({ produto_id: item.id, quantidade: item.quantidade })),
-                            tipo_entrega: tipoEntrega
-                        })
-                    });
-                    const data = await response.json();
+                for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                    try {
+                        const response = await fetch('php/pedidos_api.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                carrinho: carrinho.map(item => ({ produto_id: item.id, quantidade: item.quantidade })),
+                                tipo_entrega: tipoEntrega
+                            })
+                        });
+                        const data = await response.json();
 
-                    if (response.ok) {
-                        showNotification(data.message, 'success');
-                        localStorage.removeItem('carrinho');
-                        carrinho = [];
-                        renderCart();
-                        document.dispatchEvent(new CustomEvent('cartUpdated'));
-                        setTimeout(() => {
-                            window.location.href = 'minha_conta.html';
-                        }, 1500);
-                    } else {
-                        showNotification(`Erro: ${data.message}`, 'error');
+                        if (response.ok) {
+                            showNotification(data.message, 'success');
+                            localStorage.removeItem('carrinho');
+                            carrinho = [];
+                            renderCart();
+                            document.dispatchEvent(new CustomEvent('cartUpdated'));
+                            setTimeout(() => {
+                                window.location.href = 'minha_conta.html';
+                            }, 1500);
+                            return; // Sai do loop em caso de sucesso
+                        } else {
+                            if (attempt < maxRetries) {
+                                showNotification(`Tentativa ${attempt} falhou. Tentando novamente...`, 'error');
+                                await new Promise(resolve => setTimeout(resolve, retryDelay));
+                            } else {
+                                showNotification(`Erro: ${data.message}`, 'error');
+                            }
+                        }
+                    } catch (error) {
+                        if (attempt < maxRetries) {
+                            showNotification(`Erro de comunicação. Tentando novamente...`, 'error');
+                            await new Promise(resolve => setTimeout(resolve, retryDelay));
+                        } else {
+                            console.error('Erro ao finalizar pedido:', error);
+                            showNotification('Ocorreu um erro de comunicação ao finalizar o pedido.', 'error');
+                        }
                     }
-                } catch (error) {
-                    console.error('Erro ao finalizar pedido:', error);
-                    showNotification('Ocorreu um erro de comunicação ao finalizar o pedido.', 'error');
                 }
             });
 
-            // Renderização inicial e listener para atualizações externas
             renderCart();
             document.addEventListener('cartUpdated', renderCart);
         }
