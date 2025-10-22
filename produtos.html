@@ -122,7 +122,8 @@
                         const imageUrl = product.imagem ? product.imagem : 'caminho/para/imagem/padrao.jpg';
 
                         productDiv.innerHTML = `
-                    <img src="${imageUrl}" alt="${product.nome}">
+                    <img src="${imageUrl}" alt="${product.nome}" 
+                    onerror="this.onerror=null; this.src='img/placeholder.svg';">
                     <dl>
                         <dt>${product.nome}</dt>
                         <dd>Preço: R$ ${parseFloat(product.preco).toFixed(2).replace('.', ',')} / ${product.unidade_medida}</dd>

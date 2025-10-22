@@ -125,7 +125,8 @@
                         order.itens.forEach(item => {
                             itensHtml += `
                                 <div class="pedido-item-produto">
-                                    <img src="php/produtos_api.php?get_image=true&id=${item.produto_id}" alt="${item.produto_nome}" class="produto-imagem-pedido">
+                                    <img src="php/produtos_api.php?get_image=true&id=${item.produto_id}" alt="${item.produto_nome}" class="produto-imagem-pedido"
+                                    onerror="this.onerror=null; this.src='img/placeholder.svg';">
                                     <div class="produto-detalhes">
                                         <strong>${item.produto_nome}</strong>
                                         <span>Quantidade: ${item.quantidade} | Preço Un.: R$ ${parseFloat(item.preco_unitario).toFixed(2)}</span>
