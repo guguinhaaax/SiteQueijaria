@@ -27,14 +27,37 @@ switch ($method) {
         $imagem_path = null;
 
         if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] == 0) {
+            
+            // --- INÍCIO DA CORREÇÃO DE SEGURANÇA (ALVO 2) ---
+            $imageFileType = strtolower(pathinfo($_FILES["imagem"]["name"], PATHINFO_EXTENSION));
+            $tmp_name = $_FILES["imagem"]["tmp_name"];
+
+            // 1. Validação da Extensão (Lista de permissões)
+            $allowed_extensions = ['jpg', 'jpeg', 'png'];
+            if (!in_array($imageFileType, $allowed_extensions)) {
+                http_response_code(400);
+                echo json_encode(['message' => 'Erro: Apenas arquivos JPG, JPEG e PNG são permitidos.']);
+                exit;
+            }
+
+            // 2. Validação do Tipo MIME (Verificação real do tipo de arquivo)
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mime_type = $finfo->file($tmp_name);
+            $allowed_mime_types = ['image/jpeg', 'image/png'];
+
+            if (!in_array($mime_type, $allowed_mime_types)) {
+                http_response_code(400);
+                echo json_encode(['message' => 'Erro: Tipo de arquivo inválido detectado.']);
+                exit;
+            }
+
             $target_dir = "uploads/";
             // Garante que o diretório de destino exista
             if (!is_dir('../' . $target_dir)) {
                 mkdir('../' . $target_dir, 0777, true);
             }
-            $imageFileType = strtolower(pathinfo($_FILES["imagem"]["name"], PATHINFO_EXTENSION));
             $target_file = $target_dir . uniqid() . '.' . $imageFileType;
-            if (move_uploaded_file($_FILES["imagem"]["tmp_name"], '../' . $target_file)) {
+            if (move_uploaded_file($tmp_name, '../' . $target_file)) {
                  $imagem_path = $target_file;
             }
         }
@@ -73,15 +96,40 @@ switch ($method) {
         $imagem_path = $stmt_img->fetchColumn();
 
         // Lógica para atualizar a imagem, se uma nova for enviada
+        // Lógica para atualizar a imagem, se uma nova for enviada
         if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] == 0) {
+            
+            // --- INÍCIO DA CORREÇÃO DE SEGURANÇA (ALVO 2) ---
+            $imageFileType = strtolower(pathinfo($_FILES["imagem"]["name"], PATHINFO_EXTENSION));
+            $tmp_name = $_FILES["imagem"]["tmp_name"];
+
+            // 1. Validação da Extensão (Lista de permissões)
+            $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+            if (!in_array($imageFileType, $allowed_extensions)) {
+                http_response_code(400);
+                echo json_encode(['message' => 'Erro: Apenas arquivos JPG, JPEG, PNG e GIF são permitidos.']);
+                exit;
+            }
+
+            // 2. Validação do Tipo MIME (Verificação real do tipo de arquivo)
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mime_type = $finfo->file($tmp_name);
+            $allowed_mime_types = ['image/jpeg', 'image/png', 'image/gif'];
+
+            if (!in_array($mime_type, $allowed_mime_types)) {
+                http_response_code(400);
+                echo json_encode(['message' => 'Erro: Tipo de arquivo inválido detectado.']);
+                exit;
+            }
+            // --- FIM DA CORREÇÃO DE SEGURANÇA ---
+            
             // (Opcional: deletar a imagem antiga do servidor aqui)
             $target_dir = "uploads/";
             if (!is_dir('../' . $target_dir)) {
                 mkdir('../' . $target_dir, 0777, true);
             }
-            $imageFileType = strtolower(pathinfo($_FILES["imagem"]["name"], PATHINFO_EXTENSION));
             $target_file = $target_dir . uniqid() . '.' . $imageFileType;
-            if (move_uploaded_file($_FILES["imagem"]["tmp_name"], '../' . $target_file)) {
+            if (move_uploaded_file($tmp_name, '../' . $target_file)) {
                  $imagem_path = $target_file;
             }
         }
