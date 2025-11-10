@@ -90,109 +90,139 @@
 
     <script src="js/main.js"></script>
     <script>
-        let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+            let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
 
-        function updateCartCount() {
-            const cartCountDisplay = document.querySelector('.cart-count-display');
-            const totalItems = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
-            if (cartCountDisplay) {
-                if (totalItems > 0) {
-                    cartCountDisplay.textContent = totalItems;
-                    cartCountDisplay.style.display = 'inline-block';
-                } else {
-                    cartCountDisplay.style.display = 'none';
+            function updateCartCount() {
+                const cartCountDisplay = document.querySelector('.cart-count-display');
+                const totalItems = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
+                if (cartCountDisplay) {
+                    if (totalItems > 0) {
+                        cartCountDisplay.textContent = totalItems;
+                        cartCountDisplay.style.display = 'inline-block';
+                    } else {
+                        cartCountDisplay.style.display = 'none';
+                    }
                 }
             }
-        }
 
-        async function fetchProducts() {
-            try {
-                // A requisição GET retorna dados do produto com o caminho da imagem
-                const response = await fetch('php/produtos_api.php');
-                const products = await response.json();
-                const produtosContainer = document.getElementById('produtos-container');
-                produtosContainer.innerHTML = '';
+            async function fetchProducts() {
+                try {
+                    // A requisição GET retorna dados do produto com o caminho da imagem
+                    const response = await fetch('php/produtos_api.php');
+                    const products = await response.json();
+                    const produtosContainer = document.getElementById('produtos-container');
+                    produtosContainer.innerHTML = '';
 
-                if (products.length > 0) {
-                    products.forEach(product => {
-                        const productDiv = document.createElement('div');
-                        productDiv.classList.add('produto');
+                    if (products.length > 0) {
+                        products.forEach(product => {
+                            const productDiv = document.createElement('div');
+                            productDiv.classList.add('produto');
 
-                        // Use o caminho da imagem diretamente para o src
-                        const imageUrl = product.imagem ? product.imagem : 'caminho/para/imagem/padrao.jpg';
+                            // Use o caminho da imagem diretamente para o src
+                            const imageUrl = product.imagem ? product.imagem : 'caminho/para/imagem/padrao.jpg';
 
-                        productDiv.innerHTML = `
-                    <img src="${imageUrl}" alt="${product.nome}" 
-                    onerror="this.onerror=null; this.src='img/placeholder.svg';">
-                    <dl>
-                        <dt>${product.nome}</dt>
-                        <dd>Preço: R$ ${parseFloat(product.preco).toFixed(2).replace('.', ',')} / ${product.unidade_medida}</dd>
-                        <dd>Estoque: ${product.estoque}</dd>
-                        <dd>
-                            <button class="add-to-cart" data-id="${product.id}" data-nome="${product.nome}" data-preco="${product.preco}" data-estoque="${product.estoque}" data-unidade="${product.unidade_medida}" data-imagem="${product.imagem}">
-                                <i class="fas fa-shopping-cart"></i> Adicionar ao carrinho
-                            </button>
-                        </dd>
-                    </dl>
-                `;
-                        produtosContainer.appendChild(productDiv);
-                    });
+                            // Imagem (Seguro)
+                            const img = document.createElement('img');
+                            img.src = imageUrl;
+                            img.alt = product.nome; // .alt é seguro, não renderiza HTML
+                            img.onerror = function() { this.onerror=null; this.src='img/placeholder.svg'; };
+                            productDiv.appendChild(img);
 
-                    document.querySelectorAll('.add-to-cart').forEach(button => {
-                        button.addEventListener('click', function () {
-                            // MUDANÇA 2: Capturar a unidade e a imagem do botão
-                            const productId = this.dataset.id;
-                            const productName = this.dataset.nome;
-                            const productPrice = parseFloat(this.dataset.preco);
-                            const productStock = parseInt(this.dataset.estoque);
-                            const productUnit = this.dataset.unidade;
-                            const productImage = this.dataset.imagem;
+                            // Definition List (dl)
+                            const dl = document.createElement('dl');
 
-                            const existingItemIndex = carrinho.findIndex(item => item.id == productId);
+                            // dt - Nome (CORRIGIDO com .textContent)
+                            const dtNome = document.createElement('dt');
+                            dtNome.textContent = product.nome; // <- CORREÇÃO APLICADA
+                            dl.appendChild(dtNome);
 
-                            if (existingItemIndex > -1) {
-                                if (carrinho[existingItemIndex].quantidade < productStock) {
-                                    carrinho[existingItemIndex].quantidade++;
-                                    showNotification(`${productName} adicionado ao carrinho. Quantidade atual: ${carrinho[existingItemIndex].quantidade}`, 'success');
-                                } else {
-                                    showNotification(`Não há mais ${productName} em estoque para adicionar.`, 'error');
-                                }
-                            } else {
-                                if (productStock > 0) {
-                                    // MUDANÇA 3: Salvar a unidade e a imagem no objeto do carrinho
-                                    carrinho.push({
-                                        id: productId,
-                                        nome: productName,
-                                        preco: productPrice,
-                                        unidade_medida: productUnit,
-                                        imagem: productImage,
-                                        quantidade: 1,
-                                        estoque_disponivel: productStock
-                                    });
-                                    showNotification(`${productName} adicionado ao carrinho.`, 'success');
-                                } else {
-                                    showNotification(`${productName} está fora de estoque.`, 'error');
-                                }
-                            }
-                            localStorage.setItem('carrinho', JSON.stringify(carrinho));
-                            updateCartCount();
+                            // dd - Preço (Seguro)
+                            const ddPreco = document.createElement('dd');
+                            ddPreco.textContent = `Preço: R$ ${parseFloat(product.preco).toFixed(2).replace('.', ',')} / ${product.unidade_medida}`;
+                            dl.appendChild(ddPreco);
+
+                            // dd - Estoque (Seguro)
+                            const ddEstoque = document.createElement('dd');
+                            ddEstoque.textContent = `Estoque: ${product.estoque}`;
+                            dl.appendChild(ddEstoque);
+
+                            // dd - Botão (Seguro)
+                            const ddBotao = document.createElement('dd');
+                            const button = document.createElement('button');
+                            button.classList.add('add-to-cart');
+                            // Atributos de dados são seguros
+                            button.dataset.id = product.id;
+                            button.dataset.nome = product.nome;
+                            button.dataset.preco = product.preco;
+                            button.dataset.estoque = product.estoque;
+                            button.dataset.unidade = product.unidade_medida;
+                            button.dataset.imagem = product.imagem;
+                            // HTML estático é seguro
+                            button.innerHTML = '<i class="fas fa-shopping-cart"></i> Adicionar ao carrinho';
+                            
+                            ddBotao.appendChild(button);
+                            dl.appendChild(ddBotao);
+                            
+                            productDiv.appendChild(dl);
+                            produtosContainer.appendChild(productDiv);
                         });
-                    });
 
-                } else {
-                    produtosContainer.innerHTML = '<p>Nenhum produto disponível no momento.</p>';
+                        // O código do listener original é mantido, pois é seguro
+                        document.querySelectorAll('.add-to-cart').forEach(button => {
+                            button.addEventListener('click', function () {
+                                // MUDANÇA 2: Capturar a unidade e a imagem do botão
+                                const productId = this.dataset.id;
+                                const productName = this.dataset.nome;
+                                const productPrice = parseFloat(this.dataset.preco);
+                                const productStock = parseInt(this.dataset.estoque);
+                                const productUnit = this.dataset.unidade;
+                                const productImage = this.dataset.imagem;
+
+                                const existingItemIndex = carrinho.findIndex(item => item.id == productId);
+
+                                if (existingItemIndex > -1) {
+                                    if (carrinho[existingItemIndex].quantidade < productStock) {
+                                        carrinho[existingItemIndex].quantidade++;
+                                        showNotification(`${productName} adicionado ao carrinho. Quantidade atual: ${carrinho[existingItemIndex].quantidade}`, 'success');
+                                    } else {
+                                        showNotification(`Não há mais ${productName} em estoque para adicionar.`, 'error');
+                                    }
+                                } else {
+                                    if (productStock > 0) {
+                                        // MUDANÇA 3: Salvar a unidade e a imagem no objeto do carrinho
+                                        carrinho.push({
+                                            id: productId,
+                                            nome: productName,
+                                            preco: productPrice,
+                                            unidade_medida: productUnit,
+                                            imagem: productImage,
+                                            quantidade: 1,
+                                            estoque_disponivel: productStock
+                                        });
+                                        showNotification(`${productName} adicionado ao carrinho.`, 'success');
+                                    } else {
+                                        showNotification(`${productName} está fora de estoque.`, 'error');
+                                    }
+                                }
+                                localStorage.setItem('carrinho', JSON.stringify(carrinho));
+                                updateCartCount();
+                            });
+                        });
+
+                    } else {
+                        produtosContainer.innerHTML = '<p>Nenhum produto disponível no momento.</p>';
+                    }
+                } catch (error) {
+                    console.error('Erro ao buscar produtos:', error);
+                    document.getElementById('produtos-container').innerHTML = '<p>Erro ao carregar produtos. Tente novamente mais tarde.</p>';
                 }
-            } catch (error) {
-                console.error('Erro ao buscar produtos:', error);
-                document.getElementById('produtos-container').innerHTML = '<p>Erro ao carregar produtos. Tente novamente mais tarde.</p>';
             }
-        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchProducts();
-            updateCartCount();
-        });
-    </script>
+            document.addEventListener('DOMContentLoaded', () => {
+                fetchProducts();
+                updateCartCount();
+            });
+        </script>
 </body>
 
 </html>

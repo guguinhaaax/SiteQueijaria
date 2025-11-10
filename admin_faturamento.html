@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,14 +11,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="shortcut icon" href="ico/favicon.ico" type="image/x-icon">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
     <div id="notification-container"></div>
     <div class="top-bar-info">
         <div class="container">
             <span>Laticínio Esperança - Painel Admin</span>
-             <div id="auth-cart-area">
+            <div id="auth-cart-area">
                 <a href="minha_conta.html" id="nav-conta" style="display:none;">Minha Conta</a>
                 <a href="admin_dashboard.html" id="nav-admin" style="display:none;">Dashboard</a>
                 <a href="#" id="nav-logout" style="display:none;">Sair</a>
@@ -28,7 +32,8 @@
     <header class="main-header-content">
         <div class="container logo-container">
             <a href="index.html" class="logo-link">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGeuHdGJbjRIyDGpJehNFmZX9dJ3Sy1CCEWg&s" alt="Logo Laticínio Esperança" class="main-logo-img">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGeuHdGJbjRIyDGpJehNFmZX9dJ3Sy1CCEWg&s"
+                    alt="Logo Laticínio Esperança" class="main-logo-img">
             </a>
             <h1>Faturamento e Pedidos</h1>
         </div>
@@ -46,7 +51,8 @@
         </div>
 
         <div class="pedidos-container list-container">
-            <div class="admin-header-with-button">  <h2>Todos os Pedidos</h2>
+            <div class="admin-header-with-button">
+                <h2>Todos os Pedidos</h2>
                 <a href="php/gerar_relatorio.php" class="btn-cta" target="_blank">
                     <i class="fas fa-file-alt"></i> Gerar Relatório TXT
                 </a>
@@ -58,108 +64,125 @@
 
     <script src="js/main.js"></script>
     <script>
-        // Faz uma requisição do arquivo php para saber se o usuário é admin
-        async function checkAdmin() {
-            const response = await fetch('php/check_admin.php');
-            const data = await response.json();
-            if (!data.is_admin) {
-                showNotification('Acesso negado. Você não tem permissão para acessar esta página.', 'error');
-                setTimeout(() => { window.location.href = 'index.html'; }, 2000);
-            }
-        }
-
-        // Faz uma requisição na API restful para carregar os pedidos faturados
-        async function loadFaturamento() {
-            try {
-                const response = await fetch('php/pedidos_api.php?faturamento=true');
-                const faturamentoData = await response.json();
-                const faturamentoDiv = document.getElementById('faturamento-data');
-                
-                if (faturamentoData.length > 0) {
-                    faturamentoDiv.innerHTML = '<table><thead><tr><th>Data</th><th>Faturamento Diário</th></tr></thead><tbody></tbody></table>';
-                    const tbody = faturamentoDiv.querySelector('tbody');
-                    faturamentoData.forEach(item => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `<td>${item.data}</td><td>R$ ${parseFloat(item.faturamento_diario).toFixed(2)}</td>`;
-                        tbody.appendChild(tr);
-                    });
-                } else {
-                    faturamentoDiv.innerHTML = '<p>Nenhum dado de faturamento disponível.</p>';
+            // Faz uma requisição do arquivo php para saber se o usuário é admin
+            async function checkAdmin() {
+                const response = await fetch('php/check_admin.php');
+                const data = await response.json();
+                if (!data.is_admin) {
+                    showNotification('Acesso negado. Você não tem permissão para acessar esta página.', 'error');
+                    setTimeout(() => { window.location.href = 'index.html'; }, 2000);
                 }
-            } catch (error) {
-                console.error('Erro ao carregar faturamento:', error);
-                document.getElementById('faturamento-data').innerHTML = '<p>Erro ao carregar dados de faturamento.</p>';
             }
-        }
 
-        // Faz uma requisição na API restful para carregar todos os pedidos com seus status, se estão para serem feitos ou não
-        async function loadAllOrders() {
-            try {
-                const response = await fetch('php/pedidos_api.php');
-                const orders = await response.json();
-                const listaPedidosAdmin = document.getElementById('lista-pedidos-admin');
-                listaPedidosAdmin.innerHTML = '';
+            // Faz uma requisição na API restful para carregar os pedidos faturados
+            async function loadFaturamento() {
+                try {
+                    const response = await fetch('php/pedidos_api.php?faturamento=true');
+                    const faturamentoData = await response.json();
+                    const faturamentoDiv = document.getElementById('faturamento-data');
+                    
+                    if (faturamentoData.length > 0) {
+                        faturamentoDiv.innerHTML = '<table><thead><tr><th>Data</th><th>Faturamento Diário</th></tr></thead><tbody></tbody></table>';
+                        const tbody = faturamentoDiv.querySelector('tbody');
+                        faturamentoData.forEach(item => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `<td>${item.data}</td><td>R$ ${parseFloat(item.faturamento_diario).toFixed(2)}</td>`;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        faturamentoDiv.innerHTML = '<p>Nenhum dado de faturamento disponível.</p>';
+                    }
+                } catch (error) {
+                    console.error('Erro ao carregar faturamento:', error);
+                    document.getElementById('faturamento-data').innerHTML = '<p>Erro ao carregar dados de faturamento.</p>';
+                }
+            }
 
-                if (orders.length > 0) {
-                    const table = document.createElement('table');
-                    table.innerHTML = '<thead><tr><th>Pedido ID</th><th>Cliente</th><th>Data</th><th>Total</th><th>Status</th></tr></thead><tbody></tbody>';
-                    const tbody = table.querySelector('tbody');
-                    orders.forEach(order => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>#${order.id}</td>
-                            <td>${order.cliente_nome}</td>
-                            <td>${new Date(order.data_pedido).toLocaleString('pt-BR')}</td>
-                            <td>R$ ${parseFloat(order.total).toFixed(2)}</td>
-                            <td>
+            async function loadAllOrders() {
+                try {
+                    const response = await fetch('php/pedidos_api.php');
+                    const orders = await response.json();
+                    const listaPedidosAdmin = document.getElementById('lista-pedidos-admin');
+                    listaPedidosAdmin.innerHTML = '';
+
+                    if (orders.length > 0) {
+                        const table = document.createElement('table');
+                        table.innerHTML = '<thead><tr><th>Pedido ID</th><th>Cliente</th><th>Data</th><th>Total</th><th>Status</th></tr></thead>';
+                        const tbody = document.createElement('tbody');
+                        table.appendChild(tbody);
+
+                        orders.forEach(order => {
+                            const tr = document.createElement('tr');
+
+                            const tdId = document.createElement('td');
+                            tdId.textContent = `#${order.id}`;
+                            tr.appendChild(tdId);
+
+                            const tdCliente = document.createElement('td');
+                            tdCliente.textContent = order.cliente_nome;
+                            tr.appendChild(tdCliente);
+
+                            const tdData = document.createElement('td');
+                            tdData.textContent = new Date(order.data_pedido).toLocaleString('pt-BR');
+                            tr.appendChild(tdData);
+
+                            const tdTotal = document.createElement('td');
+                            tdTotal.textContent = `R$ ${parseFloat(order.total).toFixed(2)}`;
+                            tr.appendChild(tdTotal);
+
+                            const tdStatus = document.createElement('td');
+                            tdStatus.innerHTML = `
                                 <select class="status-pedido-select" data-id="${order.id}">
                                     <option value="pendente" ${order.status === 'pendente' ? 'selected' : ''}>Pendente</option>
                                     <option value="processando" ${order.status === 'processando' ? 'selected' : ''}>Processando</option>
                                     <option value="concluido" ${order.status === 'concluido' ? 'selected' : ''}>Concluído</option>
                                     <option value="cancelado" ${order.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
                                 </select>
-                            </td>`;
-                        tbody.appendChild(tr);
-                    });
-                    listaPedidosAdmin.appendChild(table);
+                            `;
+                            tr.appendChild(tdStatus);
 
-                    document.querySelectorAll('.status-pedido-select').forEach(select => {
-                        select.addEventListener('change', async function() {
-                            const pedidoId = this.dataset.id;
-                            const novoStatus = this.value;
-                            try {
-                                const res = await fetch('php/pedidos_api.php', {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ pedido_id: pedidoId, status: novoStatus })
-                                });
-                                const data = await res.json();
-                                if (res.ok) {
-                                    showNotification(data.message, 'success');
-                                } else {
-                                    showNotification('Erro: ' + data.message, 'error');
-                                }
-                            } catch (err) {
-                                console.error('Erro:', err);
-                                showNotification('Ocorreu um erro ao atualizar o status do pedido.', 'error');
-                            }
+                            tbody.appendChild(tr);
                         });
-                    });
+                        listaPedidosAdmin.appendChild(table);
 
-                } else {
-                    listaPedidosAdmin.innerHTML = '<p>Nenhum pedido realizado ainda.</p>';
+                        document.querySelectorAll('.status-pedido-select').forEach(select => {
+                            select.addEventListener('change', async function() {
+                                const pedidoId = this.dataset.id;
+                                const novoStatus = this.value;
+                                try {
+                                    const res = await fetch('php/pedidos_api.php', {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ pedido_id: pedidoId, status: novoStatus })
+                                    });
+                                    const data = await res.json();
+                                    if (res.ok) {
+                                        showNotification(data.message, 'success');
+                                    } else {
+                                        showNotification('Erro: ' + data.message, 'error');
+                                    }
+                                } catch (err) {
+                                    console.error('Erro:', err);
+                                    showNotification('Ocorreu um erro ao atualizar o status do pedido.', 'error');
+                                }
+                            });
+                        });
+
+                    } else {
+                        listaPedidosAdmin.innerHTML = '<p>Nenhum pedido realizado ainda.</p>';
+                    }
+                } catch (error) {
+                    console.error('Erro ao carregar pedidos:', error);
+                    document.getElementById('lista-pedidos-admin').innerHTML = '<p>Erro ao carregar lista de pedidos.</p>';
                 }
-            } catch (error) {
-                console.error('Erro ao carregar pedidos:', error);
-                document.getElementById('lista-pedidos-admin').innerHTML = '<p>Erro ao carregar lista de pedidos.</p>';
             }
-        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAdmin();
-            loadFaturamento();
-            loadAllOrders();
-        });
-    </script>
+            document.addEventListener('DOMContentLoaded', () => {
+                checkAdmin();
+                loadFaturamento();
+                loadAllOrders();
+            });
+        </script>
 </body>
+
 </html>

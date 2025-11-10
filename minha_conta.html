@@ -95,88 +95,103 @@
 
     <script src="js/main.js"></script>
     <script>
+            async function loadUserOrders() {
+                const listaPedidosDiv = document.getElementById('meus-pedidos-lista');
+                try {
+                    const response = await fetch('php/pedidos_api.php');
+                    if (!response.ok) {
+                        throw new Error('Falha ao buscar os pedidos.');
+                    }
+                    const orders = await response.json();
 
-        // Faz requisição em meus na API restful de pedidos e carrega os pedidos dos clientes na página
-        async function loadUserOrders() {
-            const listaPedidosDiv = document.getElementById('meus-pedidos-lista');
-            try {
-                const response = await fetch('php/pedidos_api.php');
-                if (!response.ok) {
-                    throw new Error('Falha ao buscar os pedidos.');
-                }
-                const orders = await response.json();
+                    listaPedidosDiv.innerHTML = '';
 
-                listaPedidosDiv.innerHTML = '';
-
-                if (orders.length === 0) {
-                    listaPedidosDiv.innerHTML = '<div class="nenhum-pedido"><h3>Você ainda não fez nenhum pedido.</h3><p>Explore nossos <a href="produtos.html">produtos</a> e faça sua primeira compra!</p></div>';
-                    return;
-                }
-
-
-                orders.forEach(order => {
-                    const orderDate = new Date(order.data_pedido).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    const orderTotal = parseFloat(order.total).toFixed(2);
-
-                    let itensHtml = '';
-                    
-                    // Para cada item cria uma div contendo imagem, nome e quantidade do produto
-                    if (order.itens && Array.isArray(order.itens)) {
-                        order.itens.forEach(item => {
-                            itensHtml += `
-                                <div class="pedido-item-produto">
-                                    <img src="php/produtos_api.php?get_image=true&id=${item.produto_id}" alt="${item.produto_nome}" class="produto-imagem-pedido"
-                                    onerror="this.onerror=null; this.src='img/placeholder.svg';">
-                                    <div class="produto-detalhes">
-                                        <strong>${item.produto_nome}</strong>
-                                        <span>Quantidade: ${item.quantidade} | Preço Un.: R$ ${parseFloat(item.preco_unitario).toFixed(2)}</span>
-                                    </div>
-                                </div>
-                            `;
-                        });
+                    if (orders.length === 0) {
+                        listaPedidosDiv.innerHTML = '<div class="nenhum-pedido"><h3>Você ainda não fez nenhum pedido.</h3><p>Explore nossos <a href="produtos.html">produtos</a> e faça sua primeira compra!</p></div>';
+                        return;
                     }
 
-                    // Cria div com id, data, status e valor total do pedido
-                    const orderDiv = document.createElement('div');
-                    orderDiv.classList.add('pedido-item');
-                    orderDiv.innerHTML = `
-                        <div class="pedido-header">
+
+                    orders.forEach(order => {
+                        const orderDate = new Date(order.data_pedido).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        const orderTotal = parseFloat(order.total).toFixed(2);
+
+                        const orderDiv = document.createElement('div');
+                        orderDiv.classList.add('pedido-item');
+
+                        const headerDiv = document.createElement('div');
+                        headerDiv.classList.add('pedido-header');
+                        headerDiv.innerHTML = `
                             <div>
                                 <strong>Pedido #${order.id}</strong> - <span>${orderDate}</span>
                             </div>
                             <span class="status ${order.status}">${order.status}</span>
                             <span>Total: <strong>R$ ${orderTotal}</strong></span>
-                        </div>
-                        <div class="pedido-body">
-                            ${itensHtml}
-                        </div>
-                    `;
-                    listaPedidosDiv.appendChild(orderDiv);
-                });
+                        `;
 
-            } catch (error) {
-                console.error('Erro ao carregar pedidos:', error);
-                listaPedidosDiv.innerHTML = '<div class="nenhum-pedido"><h3>Ocorreu um erro ao buscar seus pedidos.</h3><p>Por favor, tente novamente mais tarde.</p></div>';
+                        const bodyDiv = document.createElement('div');
+                        bodyDiv.classList.add('pedido-body');
+                        
+                        if (order.itens && Array.isArray(order.itens)) {
+                            order.itens.forEach(item => {
+                                const itemDiv = document.createElement('div');
+                                itemDiv.classList.add('pedido-item-produto');
+
+                                // Imagem
+                                const img = document.createElement('img');
+                                // A URL da imagem é controlada pelo sistema, não é um vetor de XSS aqui.
+                                img.src = `php/produtos_api.php?get_image=true&id=${item.produto_id}`;
+                                img.alt = item.produto_nome; // .alt é seguro, não renderiza HTML
+                                img.classList.add('produto-imagem-pedido');
+                                img.onerror = function() { this.onerror=null; this.src='img/placeholder.svg'; };
+                                itemDiv.appendChild(img);
+
+                                // Detalhes (CORRIGIDO com .textContent)
+                                const detailsDiv = document.createElement('div');
+                                detailsDiv.classList.add('produto-detalhes');
+
+                                const strongNome = document.createElement('strong');
+                                strongNome.textContent = item.produto_nome; // <- CORREÇÃO APLICADA
+                                detailsDiv.appendChild(strongNome);
+
+                                const spanDetalhes = document.createElement('span');
+                                spanDetalhes.textContent = `Quantidade: ${item.quantidade} | Preço Un.: R$ ${parseFloat(item.preco_unitario).toFixed(2)}`;
+                                detailsDiv.appendChild(spanDetalhes);
+                                
+                                itemDiv.appendChild(detailsDiv);
+                                bodyDiv.appendChild(itemDiv);
+                            });
+                        }
+                        
+                        // Junta as partes
+                        orderDiv.appendChild(headerDiv);
+                        orderDiv.appendChild(bodyDiv);
+                        listaPedidosDiv.appendChild(orderDiv);
+                    });
+
+                } catch (error) {
+                    console.error('Erro ao carregar pedidos:', error);
+                    listaPedidosDiv.innerHTML = '<div class="nenhum-pedido"><h3>Ocorreu um erro ao buscar seus pedidos.</h3><p>Por favor, tente novamente mais tarde.</p></div>';
+                }
             }
-        }
 
-        // Verifica se o usuário está autenticado
-        document.addEventListener('DOMContentLoaded', () => {
-            fetch('php/auth_status.php')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.isAuthenticated) {
-                        loadUserOrders();
-                    } else {
-                        showNotification('Você precisa estar logado para ver seus pedidos.', 'error');
+            // Verifica se o usuário está autenticado
+            document.addEventListener('DOMContentLoaded', () => {
+                fetch('php/auth_status.php')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.isAuthenticated) {
+                            loadUserOrders();
+                        } else {
+                            showNotification('Você precisa estar logado para ver seus pedidos.', 'error');
+                            setTimeout(() => window.location.href = 'login.html', 2000);
+                        }
+                    })
+                    .catch(() => {
+                        showNotification('Erro de autenticação. Redirecionando para o login.', 'error');
                         setTimeout(() => window.location.href = 'login.html', 2000);
-                    }
-                })
-                .catch(() => {
-                    showNotification('Erro de autenticação. Redirecionando para o login.', 'error');
-                    setTimeout(() => window.location.href = 'login.html', 2000);
-                });
-        });
-    </script>
+                    });
+            });
+        </script>
 </body>
 </html>
