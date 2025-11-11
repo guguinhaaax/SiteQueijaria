@@ -36,7 +36,7 @@ switch ($method) {
             $allowed_extensions = ['jpg', 'jpeg', 'png'];
             if (!in_array($imageFileType, $allowed_extensions)) {
                 http_response_code(400);
-                echo json_encode(['message' => 'Erro: Apenas arquivos JPG, JPEG e PNG são permitidos.']);
+                echo json_encode(['message' => ' Apenas arquivos JPG, JPEG e PNG são permitidos.']);
                 exit;
             }
 
