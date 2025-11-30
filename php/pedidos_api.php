@@ -2,6 +2,7 @@
 session_start();
 require_once 'conexao.php';
 require_once 'auth.php';
+require_once 'PedidoRetirada.php';
 
 header('Content-Type: application/json');
 
@@ -81,87 +82,44 @@ switch ($method) {
         }
         break;
     case 'POST':
-        // Adicionar produtos e realizar pedidos.
-        // Varíavel tipo_entrega existe, porém só existe um tipo de entrega no momento (retirada local)
+        // Verificação de segurança
         if (!isAuthenticated()) {
             http_response_code(401);
-            echo json_encode(['message' => 'Não autorizado. Faça login para realizar um pedido.']);
+            echo json_encode(['message' => 'Não autorizado.']);
             exit();
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
         $carrinho = $data['carrinho'] ?? [];
-        
         $tipo_entrega = $data['tipo_entrega'] ?? '';
 
-        if (empty($carrinho) || !is_array($carrinho)) {
-            http_response_code(400);
-            echo json_encode(['message' => 'Dados do pedido inválidos. O carrinho está vazio ou em formato incorreto.']);
-            exit();
-        }
-        
-        if (!in_array($tipo_entrega, ['retirada'])) {
-            http_response_code(400);
-            echo json_encode(['message' => "Tipo de entrega inválido. Valores permitidos: 'retirada'."]);
-            exit();
-        }
-
-        $pdo->beginTransaction();
         try {
-            $total_pedido = 0;
-            $itens_para_inserir = [];
-
-            $stmt_produto = $pdo->prepare("SELECT preco, estoque FROM produtos WHERE id = ? FOR UPDATE");
-            $stmt_update_estoque = $pdo->prepare("UPDATE produtos SET estoque = estoque - ? WHERE id = ?");
-
-            foreach ($carrinho as $item) {
-                if (!isset($item['produto_id']) || !isset($item['quantidade']) || !is_numeric($item['quantidade']) || $item['quantidade'] <= 0) {
-                    throw new Exception('Item do carrinho inválido.');
-                }
+            // Verifica se o tipo é retirada
+            if ($tipo_entrega === 'retirada') {
+                // INSTANCIA A NOSSA NOVA CLASSE
+                // Passamos o $pdo (vem do conexao.php), o carrinho e o ID do usuário
+                $processador = new PedidoRetirada($pdo, $carrinho, $_SESSION['user_id']);
                 
-                $produto_id = $item['produto_id'];
-                $quantidade = $item['quantidade'];
+                // EXECUTA O PADRÃO TEMPLATE METHOD
+                $resultado = $processador->processar();
 
-                $stmt_produto->execute([$produto_id]);
-                $produto = $stmt_produto->fetch();
-
-                if (!$produto || $produto['estoque'] < $quantidade) {
-                    throw new Exception('Estoque insuficiente para o produto ID ' . $produto_id);
-                }
-
-                $total_item = $produto['preco'] * $quantidade;
-                $total_pedido += $total_item;
-                $itens_para_inserir[] = [
-                    'produto_id' => $produto_id,
-                    'quantidade' => $quantidade,
-                    'preco_unitario' => $produto['preco']
-                ];
-
-                $stmt_update_estoque->execute([$quantidade, $produto_id]);
+                echo json_encode([
+                    'message' => 'Pedido realizado com sucesso!', 
+                    'pedido_id' => $resultado['pedido_id']
+                ]);
+            } else {
+                http_response_code(400);
+                echo json_encode(['message' => 'Tipo de entrega inválido.']);
             }
-
-            $stmt = $pdo->prepare("INSERT INTO pedidos (usuario_id, tipo_entrega, total) VALUES (?, ?, ?)");
-            $stmt->execute([$_SESSION['user_id'], $tipo_entrega, $total_pedido]);
-            $pedido_id = $pdo->lastInsertId();
-
-            $stmt_itens = $pdo->prepare("INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unitario) VALUES (?, ?, ?, ?)");
-            foreach ($itens_para_inserir as $item) {
-                $stmt_itens->execute([$pedido_id, $item['produto_id'], $item['quantidade'], $item['preco_unitario']]);
-            }
-
-            $pdo->commit();
-            error_log("Novo pedido realizado! ID do Pedido: " . $pedido_id . " por usuário ID: " . $_SESSION['user_id']);
-
-            echo json_encode(['message' => 'Pedido realizado com sucesso!', 'pedido_id' => $pedido_id]);
 
         } catch (Exception $e) {
-            $pdo->rollBack();
-            if (strpos($e->getMessage(), 'Estoque insuficiente') !== false) {
+            // Se der erro (estoque, banco, etc), cai aqui
+            if (strpos($e->getMessage(), 'Estoque') !== false) {
                 http_response_code(400);
             } else {
                 http_response_code(500);
             }
-            echo json_encode(['message' => 'Erro ao realizar pedido: ' . $e->getMessage()]);
+            echo json_encode(['message' => 'Erro: ' . $e->getMessage()]);
         }
         break;
 
